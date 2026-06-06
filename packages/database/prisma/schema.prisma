@@ -1,9 +1,27 @@
 generator client {
   provider = "prisma-client"
+  output   = "../generated/client"
 }
 
 datasource db {
   provider = "postgresql"
+}
+
+enum OrderSide {
+  BUY
+  SELL
+}
+
+enum OrderType {
+  LIMIT
+  MARKET
+}
+
+enum OrderStatus {
+  PENDING
+  PARTIALLY_FILLED
+  FILLED
+  CANCELLED
 }
 
 model User {
@@ -16,6 +34,7 @@ model User {
   updatedAt    DateTime @updatedAt
 
   wallets      Wallet[]
+  orders Order[]
 
   @@map("users")
 }
@@ -68,4 +87,31 @@ model Market {
   createdAt DateTime @default(now())
 
   @@map("markets")
+}
+
+model Order {
+  id String @id @default(cuid())
+
+  userId String
+  marketId String
+
+  side OrderSide
+  type OrderType
+
+  status OrderStatus @default(PENDING)
+
+  price Decimal?
+
+  quantity Decimal
+  filledQuantity Decimal @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([marketId])
+  @@index([status])
+
+  @@map("orders")
 }

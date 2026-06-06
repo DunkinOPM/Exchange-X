@@ -4,12 +4,12 @@ services:
     container_name: exchange-postgres
 
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: exchange_db
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
 
     ports:
-      - "5432:5432"
+      - "${POSTGRES_PORT}:5432"
 
     volumes:
       - postgres_data:/var/lib/postgresql/data
@@ -21,7 +21,7 @@ services:
     container_name: exchange-redis
 
     ports:
-      - "6379:6379"
+      - "${REDIS_PORT}:6379"
 
     volumes:
       - redis_data:/data

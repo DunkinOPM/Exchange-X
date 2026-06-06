@@ -33,3 +33,12 @@ export const OrderStatus = {
 } as const
 
 export type OrderStatus = (typeof OrderStatus)[keyof typeof OrderStatus]
+
+
+export const TransactionType = {
+  DEPOSIT: 'DEPOSIT',
+  WITHDRAWAL: 'WITHDRAWAL',
+  TRADE_SETTLEMENT: 'TRADE_SETTLEMENT'
+} as const
+
+export type TransactionType = (typeof TransactionType)[keyof typeof TransactionType]

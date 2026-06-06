@@ -42,3 +42,13 @@ export type Market = Prisma.MarketModel
  * 
  */
 export type Order = Prisma.OrderModel
+/**
+ * Model Trade
+ * 
+ */
+export type Trade = Prisma.TradeModel
+/**
+ * Model Transaction
+ * 
+ */
+export type Transaction = Prisma.TransactionModel

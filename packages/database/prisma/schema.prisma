@@ -24,6 +24,11 @@ enum OrderStatus {
   CANCELLED
 }
 
+enum TransactionType {
+  DEPOSIT
+  WITHDRAWAL
+  TRADE_SETTLEMENT
+}
 model User {
   id           String   @id @default(cuid())
   email        String   @unique
@@ -114,4 +119,40 @@ model Order {
   @@index([status])
 
   @@map("orders")
+}
+
+model Trade {
+  id String @id @default(cuid())
+
+  buyOrderId  String
+  sellOrderId String
+
+  marketId String
+
+  price Decimal
+  quantity Decimal
+
+  executedAt DateTime @default(now())
+
+  @@index([marketId])
+
+  @@map("trades")
+}
+
+model Transaction {
+  id String @id @default(cuid())
+
+  userId String
+
+  assetSymbol String
+
+  amount Decimal
+
+  type TransactionType
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+
+  @@map("transactions")
 }

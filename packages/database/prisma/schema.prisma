@@ -1,0 +1,71 @@
+generator client {
+  provider = "prisma-client"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  username     String   @unique
+  passwordHash String
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  wallets      Wallet[]
+
+  @@map("users")
+}
+
+model Asset {
+  id        String   @id @default(cuid())
+
+  symbol    String   @unique
+  name      String
+
+  isActive  Boolean  @default(true)
+
+  createdAt DateTime @default(now())
+
+  wallets   Wallet[]
+
+  @@map("assets")
+}
+
+model Wallet {
+  id               String   @id @default(cuid())
+
+  userId           String
+  assetId          String
+
+  availableBalance Decimal @default(0)
+  lockedBalance    Decimal @default(0)
+
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  user             User     @relation(fields: [userId], references: [id])
+  asset            Asset    @relation(fields: [assetId], references: [id])
+
+  @@unique([userId, assetId])
+
+  @@map("wallets")
+}
+
+model Market {
+  id String @id @default(cuid())
+
+  symbol String @unique
+
+  baseAssetSymbol String
+  quoteAssetSymbol String
+
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+
+  @@map("markets")
+}

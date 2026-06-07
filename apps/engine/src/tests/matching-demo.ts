@@ -24,6 +24,7 @@ console.log("==============================");
     price: 100000,
     quantity: 1,
     filledQuantity: 0,
+    status: "PENDING",
     createdAt: new Date(),
   });
 
@@ -35,6 +36,7 @@ console.log("==============================");
     price: 100000,
     quantity: 1,
     filledQuantity: 0,
+    status: "PENDING",
     createdAt: new Date(),
   });
 
@@ -58,6 +60,7 @@ console.log("==============================");
     price: 100000,
     quantity: 5,
     filledQuantity: 0,
+    status: "PENDING",
     createdAt: new Date(),
   });
 
@@ -69,12 +72,14 @@ console.log("==============================");
     price: 100000,
     quantity: 2,
     filledQuantity: 0,
+    status: "PENDING",
     createdAt: new Date(),
   });
 
   console.log("Trades:", trades);
   console.log("Remaining Bids:", orderBook.getBids());
   console.log("Remaining Asks:", orderBook.getAsks());
+  console.log(orderBook.getBids().get(100000)?.[0]);
 }
 
 console.log("\n==============================");
@@ -92,6 +97,7 @@ console.log("==============================");
     price: 100000,
     quantity: 1,
     filledQuantity: 0,
+    status: "PENDING",
     createdAt: new Date(),
   });
 
@@ -103,6 +109,7 @@ console.log("==============================");
     price: 100000,
     quantity: 1,
     filledQuantity: 0,
+    status: "PENDING",
     createdAt: new Date(),
   });
 
@@ -114,6 +121,7 @@ console.log("==============================");
     price: 100000,
     quantity: 1,
     filledQuantity: 0,
+    status: "PENDING",
     createdAt: new Date(),
   });
 
@@ -136,6 +144,7 @@ console.log("==============================");
     price: 100000,
     quantity: 1,
     filledQuantity: 0,
+    status: "PENDING",
     createdAt: new Date(),
   });
 
@@ -147,10 +156,45 @@ console.log("==============================");
     price: 101000,
     quantity: 1,
     filledQuantity: 0,
+    status: "PENDING",
     createdAt: new Date(),
   });
 
   console.log("Trades:", trades);
   console.log("Bids:", orderBook.getBids());
   console.log("Asks:", orderBook.getAsks());
+}
+
+console.log("\n==============================");
+console.log("TEST 5 - FILLED STATUS");
+console.log("==============================");
+
+{
+  const { engine } = createEngine();
+
+  engine.submitOrder({
+    id: "BUY1",
+    userId: "user1",
+    marketId: "BTCUSDT",
+    side: "BUY",
+    price: 100000,
+    quantity: 1,
+    filledQuantity: 0,
+    status: "PENDING",
+    createdAt: new Date(),
+  });
+
+  const trades = engine.submitOrder({
+    id: "SELL1",
+    userId: "user2",
+    marketId: "BTCUSDT",
+    side: "SELL",
+    price: 100000,
+    quantity: 1,
+    filledQuantity: 0,
+    status: "PENDING",
+    createdAt: new Date(),
+  });
+
+  console.log(trades);
 }

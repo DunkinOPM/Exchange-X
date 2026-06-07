@@ -13,6 +13,7 @@ engine.submitOrder({
   price: 100000,
   quantity: 2,
   filledQuantity: 0,
+  status: "PENDING",
   createdAt: new Date(),
 });
 
@@ -24,6 +25,7 @@ const trades = engine.submitOrder({
   price: 100000,
   quantity: 1,
   filledQuantity: 0,
+  status: "PENDING",
   createdAt: new Date(),
 });
 

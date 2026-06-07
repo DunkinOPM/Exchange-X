@@ -1,5 +1,10 @@
 export type OrderSide = "BUY" | "SELL";
 
+export type OrderStatus =
+  | "PENDING"
+  | "PARTIALLY_FILLED"
+  | "FILLED";
+
 export interface EngineOrder {
   id: string;
 
@@ -14,6 +19,8 @@ export interface EngineOrder {
   quantity: number;
 
   filledQuantity: number;
+
+  status: OrderStatus;
 
   createdAt: Date;
 }

@@ -31,19 +31,17 @@ export class OrderBook {
       ) {
         const sellOrder = askQueue[0];
 
-        const remainingBuy =
-          buyOrder.quantity - buyOrder.filledQuantity;
+        const remainingBuy = buyOrder.quantity - buyOrder.filledQuantity;
 
-        const remainingSell =
-          sellOrder.quantity - sellOrder.filledQuantity;
+        const remainingSell = sellOrder.quantity - sellOrder.filledQuantity;
 
-        const tradeQuantity = Math.min(
-          remainingBuy,
-          remainingSell
-        );
+        const tradeQuantity = Math.min(remainingBuy, remainingSell);
 
         buyOrder.filledQuantity += tradeQuantity;
         sellOrder.filledQuantity += tradeQuantity;
+
+        this.updateOrderStatus(buyOrder);
+        this.updateOrderStatus(sellOrder);
 
         trades.push({
           buyOrderId: buyOrder.id,
@@ -53,9 +51,7 @@ export class OrderBook {
           executedAt: new Date(),
         });
 
-        if (
-          sellOrder.filledQuantity === sellOrder.quantity
-        ) {
+        if (sellOrder.filledQuantity === sellOrder.quantity) {
           askQueue.shift();
         }
       }
@@ -90,19 +86,17 @@ export class OrderBook {
       ) {
         const buyOrder = bidQueue[0];
 
-        const remainingBuy =
-          buyOrder.quantity - buyOrder.filledQuantity;
+        const remainingBuy = buyOrder.quantity - buyOrder.filledQuantity;
 
-        const remainingSell =
-          sellOrder.quantity - sellOrder.filledQuantity;
+        const remainingSell = sellOrder.quantity - sellOrder.filledQuantity;
 
-        const tradeQuantity = Math.min(
-          remainingBuy,
-          remainingSell
-        );
+        const tradeQuantity = Math.min(remainingBuy, remainingSell);
 
         buyOrder.filledQuantity += tradeQuantity;
         sellOrder.filledQuantity += tradeQuantity;
+
+        this.updateOrderStatus(buyOrder);
+        this.updateOrderStatus(sellOrder);
 
         trades.push({
           buyOrderId: buyOrder.id,
@@ -112,9 +106,7 @@ export class OrderBook {
           executedAt: new Date(),
         });
 
-        if (
-          buyOrder.filledQuantity === buyOrder.quantity
-        ) {
+        if (buyOrder.filledQuantity === buyOrder.quantity) {
           bidQueue.shift();
         }
       }
@@ -148,6 +140,16 @@ export class OrderBook {
       queue.push(order);
     } else {
       this.asks.set(order.price, [order]);
+    }
+  }
+
+  private updateOrderStatus(order: EngineOrder) {
+    if (order.filledQuantity === 0) {
+      order.status = "PENDING";
+    } else if (order.filledQuantity < order.quantity) {
+      order.status = "PARTIALLY_FILLED";
+    } else {
+      order.status = "FILLED";
     }
   }
 

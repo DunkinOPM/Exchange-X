@@ -1,10 +1,10 @@
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/client"
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 enum OrderSide {
@@ -91,6 +91,8 @@ model Market {
 
   createdAt DateTime @default(now())
 
+  orders Order[]
+
   @@map("markets")
 }
 
@@ -115,12 +117,13 @@ model Order {
 
   user User @relation(fields: [userId], references: [id])
 
+  market Market @relation(fields: [marketId], references: [id])
+
   @@index([marketId])
   @@index([status])
 
   @@map("orders")
 }
-
 model Trade {
   id String @id @default(cuid())
 

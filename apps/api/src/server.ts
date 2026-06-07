@@ -1,5 +1,5 @@
 import Fastify from "fastify";
-
+import { orderRoutes } from "./routes/orders";
 const app = Fastify({
   logger: true,
 });
@@ -23,5 +23,5 @@ const start = async () => {
     process.exit(1);
   }
 };
-
+app.register(orderRoutes);
 start();

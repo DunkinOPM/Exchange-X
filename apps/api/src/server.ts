@@ -1,3 +1,9 @@
+import dotenv from "dotenv";
+
+dotenv.config({
+  path: "../../.env",
+});
+console.log("DATABASE_URL =", process.env.DATABASE_URL);
 import Fastify from "fastify";
 import { orderRoutes } from "./routes/orders";
 const app = Fastify({

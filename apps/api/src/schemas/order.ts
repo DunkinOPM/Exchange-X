@@ -7,7 +7,9 @@ export const CreateOrderSchema = z.object({
 
   side: z.enum(["BUY", "SELL"]),
 
-  price: z.number().positive(),
+  type: z.enum(["LIMIT", "MARKET"]),
+
+  price: z.number().positive().optional(),
 
   quantity: z.number().positive(),
 });

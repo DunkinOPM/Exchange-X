@@ -1,6 +1,6 @@
 import { FastifyInstance } from "fastify";
 import { ZodError } from "zod";
-
+import { prisma } from "../lib/prisma";
 import { CreateOrderSchema } from "../schemas/order";
 import { orderService } from "../services/OrderService";
 

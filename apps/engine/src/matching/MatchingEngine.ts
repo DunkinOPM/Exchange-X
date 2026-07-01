@@ -1,11 +1,11 @@
 import { EngineOrder } from "../models/EngineOrder";
+import { MatchingResult } from "../models/MatchingResult";
 import { OrderBook } from "../orderbook/OrderBook";
-import { Trade } from "../models/Trade";
 
 export class MatchingEngine {
   constructor(private readonly orderBook: OrderBook) {}
 
-  submitOrder(order: EngineOrder): Trade[] {
+  submitOrder(order: EngineOrder): MatchingResult {
     return this.orderBook.addOrder(order);
   }
 }

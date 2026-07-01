@@ -1,11 +1,12 @@
 import { EngineOrder } from "../models/EngineOrder";
 import { Trade } from "../models/Trade";
+import { MatchingResult } from "../models/MatchingResult";
 
 export class OrderBook {
   private bids: Map<number, EngineOrder[]> = new Map();
   private asks: Map<number, EngineOrder[]> = new Map();
 
-  addOrder(order: EngineOrder): Trade[] {
+  addOrder(order: EngineOrder): MatchingResult {
     if (order.side === "BUY") {
       return this.matchBuyOrder(order);
     }
@@ -13,8 +14,9 @@ export class OrderBook {
     return this.matchSellOrder(order);
   }
 
-  private matchBuyOrder(buyOrder: EngineOrder): Trade[] {
+  private matchBuyOrder(buyOrder: EngineOrder): MatchingResult {
     const trades: Trade[] = [];
+    const updatedOrders = new Map<string, EngineOrder>();
 
     const askPrices = [...this.asks.keys()].sort((a, b) => a - b);
 
@@ -42,6 +44,8 @@ export class OrderBook {
 
         this.updateOrderStatus(buyOrder);
         this.updateOrderStatus(sellOrder);
+        updatedOrders.set(buyOrder.id, buyOrder);
+        updatedOrders.set(sellOrder.id, sellOrder);
 
         trades.push({
           buyOrderId: buyOrder.id,
@@ -65,11 +69,15 @@ export class OrderBook {
       this.insertBid(buyOrder);
     }
 
-    return trades;
+    return {
+      trades,
+      updatedOrders: [...updatedOrders.values()],
+    };
   }
 
-  private matchSellOrder(sellOrder: EngineOrder): Trade[] {
+  private matchSellOrder(sellOrder: EngineOrder): MatchingResult {
     const trades: Trade[] = [];
+    const updatedOrders = new Map<string, EngineOrder>();
 
     const bidPrices = [...this.bids.keys()].sort((a, b) => b - a);
 
@@ -97,6 +105,8 @@ export class OrderBook {
 
         this.updateOrderStatus(buyOrder);
         this.updateOrderStatus(sellOrder);
+        updatedOrders.set(buyOrder.id, buyOrder);
+        updatedOrders.set(sellOrder.id, sellOrder);
 
         trades.push({
           buyOrderId: buyOrder.id,
@@ -120,7 +130,10 @@ export class OrderBook {
       this.insertAsk(sellOrder);
     }
 
-    return trades;
+    return {
+      trades,
+      updatedOrders: [...updatedOrders.values()],
+    };
   }
 
   private insertBid(order: EngineOrder) {

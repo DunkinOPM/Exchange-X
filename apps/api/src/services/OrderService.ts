@@ -24,10 +24,10 @@ export class OrderService {
 
     const engineOrder = toEngineOrder(order);
 
-    const trades = matchingEngine.submitOrder(engineOrder);
+    const result = matchingEngine.submitOrder(engineOrder);
 
     await prisma.$transaction(async (tx) => {
-      for (const trade of trades) {
+      for (const trade of result.trades) {
         await tx.trade.create({
           data: {
             buyOrderId: trade.buyOrderId,
@@ -38,32 +38,23 @@ export class OrderService {
             executedAt: trade.executedAt,
           },
         });
-
-        await tx.order.update({
-          where: {
-            id: trade.buyOrderId,
-          },
-          data: {
-            status: "FILLED",
-            filledQuantity: trade.quantity,
-          },
-        });
-
-        await tx.order.update({
-          where: {
-            id: trade.sellOrderId,
-          },
-          data: {
-            status: "FILLED",
-            filledQuantity: trade.quantity,
-          },
-        });
+        for (const updatedOrder of result.updatedOrders) {
+          await tx.order.update({
+            where: {
+              id: updatedOrder.id,
+            },
+            data: {
+              status: updatedOrder.status,
+              filledQuantity: updatedOrder.filledQuantity,
+            },
+          });
+        }
       }
     });
 
     return {
       order,
-      trades,
+      trades : result.trades,
     };
   }
 }

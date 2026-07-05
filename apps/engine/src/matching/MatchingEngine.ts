@@ -12,4 +12,7 @@ export class MatchingEngine {
   cancelOrder(orderId: string): EngineOrder | null {
     return this.orderBook.cancelOrder(orderId);
   }
+  getOrderBook() {
+    return this.orderBook.getOrderBook();
+  }
 }

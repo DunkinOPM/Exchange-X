@@ -14,38 +14,38 @@ export class OrderBook {
     return this.matchSellOrder(order);
   }
   cancelOrder(orderId: string): EngineOrder | null {
-  // Search bids
-  for (const [price, queue] of this.bids) {
-    const index = queue.findIndex(order => order.id === orderId);
+    // Search bids
+    for (const [price, queue] of this.bids) {
+      const index = queue.findIndex((order) => order.id === orderId);
 
-    if (index !== -1) {
-      const [removedOrder] = queue.splice(index, 1);
+      if (index !== -1) {
+        const [removedOrder] = queue.splice(index, 1);
 
-      if (queue.length === 0) {
-        this.bids.delete(price);
+        if (queue.length === 0) {
+          this.bids.delete(price);
+        }
+
+        return removedOrder;
       }
-
-      return removedOrder;
     }
-  }
 
-  // Search asks
-  for (const [price, queue] of this.asks) {
-    const index = queue.findIndex(order => order.id === orderId);
+    // Search asks
+    for (const [price, queue] of this.asks) {
+      const index = queue.findIndex((order) => order.id === orderId);
 
-    if (index !== -1) {
-      const [removedOrder] = queue.splice(index, 1);
+      if (index !== -1) {
+        const [removedOrder] = queue.splice(index, 1);
 
-      if (queue.length === 0) {
-        this.asks.delete(price);
+        if (queue.length === 0) {
+          this.asks.delete(price);
+        }
+
+        return removedOrder;
       }
-
-      return removedOrder;
     }
-  }
 
-  return null;
-}
+    return null;
+  }
 
   private matchBuyOrder(buyOrder: EngineOrder): MatchingResult {
     const trades: Trade[] = [];
@@ -199,6 +199,39 @@ export class OrderBook {
     }
   }
 
+  private aggregateLevels(book: Map<number, EngineOrder[]>) {
+    const levels = [];
+
+    for (const [price, orders] of book) {
+      let quantity = 0;
+
+      for (const order of orders) {
+        quantity += order.quantity - order.filledQuantity;
+      }
+
+      levels.push({
+        price,
+        quantity,
+      });
+    }
+
+    return levels;
+  }
+
+  getOrderBook() {
+    const bids = this.aggregateLevels(this.bids).sort(
+      (a, b) => b.price - a.price,
+    );
+
+    const asks = this.aggregateLevels(this.asks).sort(
+      (a, b) => a.price - b.price,
+    );
+
+    return {
+      bids,
+      asks,
+    };
+  }
   getBids() {
     return this.bids;
   }

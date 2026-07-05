@@ -1,0 +1,12 @@
+{
+  "name": "websocket",
+  "private": true,
+  "scripts": {
+    "dev": "tsx src/testSubscriber.ts"
+  },
+  "dependencies": {
+    "@exchange/redis": "*",
+    "@exchange/shared-events": "*",
+    "tsx": "^4.20.5"
+  }
+}

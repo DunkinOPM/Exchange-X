@@ -34,7 +34,7 @@ export class OrderService {
         quantity: body.quantity,
       },
     });
-    eventBus.emit(EventNames.ORDER_PLACED, {
+    eventBus.publish(EventNames.ORDER_PLACED, {
       orderId: order.id,
       marketSymbol: body.market,
       side: order.side,
@@ -62,7 +62,7 @@ export class OrderService {
             executedAt: trade.executedAt,
           },
         });
-        eventBus.emit(EventNames.ORDER_MATCHED, {
+        eventBus.publish(EventNames.ORDER_MATCHED, {
           buyOrderId: trade.buyOrderId,
           sellOrderId: trade.sellOrderId,
           marketSymbol: body.market,
@@ -119,7 +119,7 @@ export class OrderService {
       throw new Error("Order not found in matching engine.");
     }
 
-    eventBus.emit(EventNames.ORDER_CANCELLED, {
+    eventBus.publish(EventNames.ORDER_CANCELLED, {
       orderId,
       marketSymbol: order.market.symbol,
     });

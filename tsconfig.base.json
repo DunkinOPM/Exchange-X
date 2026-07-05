@@ -3,7 +3,7 @@
     "target": "ES2022",
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
-
+    "types": ["node"],
     "strict": true,
 
     "esModuleInterop": true,
@@ -22,9 +22,8 @@
     "baseUrl": ".",
 
     "paths": {
-      "@exchange/matching-engine": [
-        "packages/matching-engine/src"
-      ]
+      "@exchange/matching-engine": ["packages/matching-engine/src"],
+      "@exchange/shared-events": ["packages/shared-events/src"]
     }
   }
 }

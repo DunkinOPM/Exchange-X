@@ -1,5 +1,5 @@
 import dotenv from "dotenv";
-
+import { registerEventListeners } from "./events/registerEventListeners";
 dotenv.config({
   path: "../../.env",
 });
@@ -18,6 +18,7 @@ app.get("/health", async () => {
 
 const start = async () => {
   try {
+    registerEventListeners();
     await app.listen({
       port: 4000,
       host: "0.0.0.0",

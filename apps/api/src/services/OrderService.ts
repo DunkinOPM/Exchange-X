@@ -1,6 +1,7 @@
 import { prisma } from "../lib/prisma";
 import { matchingEngine } from "../lib/matchingEngine";
 import { toEngineOrder } from "../utils/orderMapper";
+import { eventBus, EventNames } from "@exchange/shared-events";
 
 export class OrderService {
   async createOrder(body: {
@@ -33,7 +34,13 @@ export class OrderService {
         quantity: body.quantity,
       },
     });
-
+    eventBus.emit(EventNames.ORDER_PLACED, {
+      orderId: order.id,
+      marketSymbol: body.market,
+      side: order.side,
+      price: Number(order.price),
+      quantity: Number(order.quantity),
+    });
     // Convert to engine order
     const engineOrder = toEngineOrder(order);
 
@@ -54,6 +61,14 @@ export class OrderService {
             quantity: trade.quantity,
             executedAt: trade.executedAt,
           },
+        });
+        eventBus.emit(EventNames.ORDER_MATCHED, {
+          buyOrderId: trade.buyOrderId,
+          sellOrderId: trade.sellOrderId,
+          marketSymbol: body.market,
+          price: trade.price,
+          quantity: trade.quantity,
+          executedAt: trade.executedAt,
         });
       }
 
@@ -103,6 +118,11 @@ export class OrderService {
     if (!removedOrder) {
       throw new Error("Order not found in matching engine.");
     }
+
+    eventBus.emit(EventNames.ORDER_CANCELLED, {
+      orderId,
+      marketSymbol: order.market.symbol,
+    });
 
     return prisma.order.update({
       where: {

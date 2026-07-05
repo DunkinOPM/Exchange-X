@@ -9,7 +9,7 @@ export function toEngineOrder(
 
     userId: order.userId,
 
-    marketId: order.marketId,
+    marketSymbol: "",
 
     side: order.side as "BUY" | "SELL",
 

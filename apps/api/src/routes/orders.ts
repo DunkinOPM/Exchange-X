@@ -61,15 +61,17 @@ export async function orderRoutes(app: FastifyInstance) {
     };
   });
 
-  app.get("/orderbook", async (_request, reply) => {
-    const orderBook = matchingEngine.getOrderBook();
+  app.get("/orderbook/:market", async (request, reply) => {
+    const { market } = request.params as { market: string };
+    const orderBook = matchingEngine.getOrderBookSnapshot(market);
 
     return reply.send(orderBook);
   });
   
-  app.get("/ticker", async (_, reply) => {
+  app.get("/ticker/:market", async (request, reply) => {
+    const { market } = request.params as { market: string };
     return reply.send(
-        matchingEngine.getTicker()
+        matchingEngine.getTicker(market)
     );
 });
 }

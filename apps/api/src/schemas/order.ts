@@ -3,7 +3,7 @@ import { z } from "zod";
 export const CreateOrderSchema = z.object({
   userId: z.string(),
 
-  marketId: z.string(),
+  market: z.string(),
 
   side: z.enum(["BUY", "SELL"]),
 

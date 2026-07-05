@@ -10,7 +10,7 @@ export interface EngineOrder {
 
   userId: string;
 
-  marketId: string;
+  marketSymbol: string;
 
   side: OrderSide;
 

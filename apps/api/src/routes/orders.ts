@@ -60,10 +60,16 @@ export async function orderRoutes(app: FastifyInstance) {
       trades,
     };
   });
-  
+
   app.get("/orderbook", async (_request, reply) => {
     const orderBook = matchingEngine.getOrderBook();
 
     return reply.send(orderBook);
   });
+  
+  app.get("/ticker", async (_, reply) => {
+    return reply.send(
+        matchingEngine.getTicker()
+    );
+});
 }

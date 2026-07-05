@@ -15,4 +15,7 @@ export class MatchingEngine {
   getOrderBook() {
     return this.orderBook.getOrderBook();
   }
+  getTicker() {
+    return this.orderBook.getTicker();
+}
 }

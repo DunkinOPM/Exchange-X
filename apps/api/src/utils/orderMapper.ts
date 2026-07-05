@@ -1,9 +1,7 @@
 import { Order } from "@prisma/client";
-import { EngineOrder } from "../../../engine/src/models/EngineOrder";
+import { EngineOrder } from "../../../../packages/matching-engine/src/models/EngineOrder";
 
-export function toEngineOrder(
-  order: Order
-): EngineOrder {
+export function toEngineOrder(order: Order): EngineOrder {
   return {
     id: order.id,
 
@@ -19,10 +17,7 @@ export function toEngineOrder(
 
     filledQuantity: Number(order.filledQuantity),
 
-    status: order.status as
-  | "PENDING"
-  | "PARTIALLY_FILLED"
-  | "FILLED",
+    status: order.status as "PENDING" | "PARTIALLY_FILLED" | "FILLED",
 
     createdAt: order.createdAt,
   };

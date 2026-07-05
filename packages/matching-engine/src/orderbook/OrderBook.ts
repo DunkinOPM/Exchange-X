@@ -88,7 +88,8 @@ export class OrderBook {
           quantity: tradeQuantity,
           executedAt: new Date(),
         });
-        this.lastTradePrice = tradeQuantity > 0 ? askPrice : this.lastTradePrice;
+        this.lastTradePrice =
+          tradeQuantity > 0 ? askPrice : this.lastTradePrice;
 
         if (sellOrder.filledQuantity === sellOrder.quantity) {
           askQueue.shift();
@@ -150,7 +151,8 @@ export class OrderBook {
           quantity: tradeQuantity,
           executedAt: new Date(),
         });
-        this.lastTradePrice = tradeQuantity > 0 ? bidPrice : this.lastTradePrice;
+        this.lastTradePrice =
+          tradeQuantity > 0 ? bidPrice : this.lastTradePrice;
         if (buyOrder.filledQuantity === buyOrder.quantity) {
           bidQueue.shift();
         }
@@ -242,27 +244,20 @@ export class OrderBook {
     return this.asks;
   }
   getTicker() {
-  const bids = this.aggregateLevels(this.bids);
-  const asks = this.aggregateLevels(this.asks);
+    const bids = this.aggregateLevels(this.bids);
+    const asks = this.aggregateLevels(this.asks);
 
-  const bestBid =
-    bids.length > 0
-      ? Math.max(...bids.map(b => b.price))
-      : null;
+    const bestBid =
+      bids.length > 0 ? Math.max(...bids.map((b) => b.price)) : null;
 
-  const bestAsk =
-    asks.length > 0
-      ? Math.min(...asks.map(a => a.price))
-      : null;
+    const bestAsk =
+      asks.length > 0 ? Math.min(...asks.map((a) => a.price)) : null;
 
-  return {
-    bestBid,
-    bestAsk,
-    lastPrice: this.lastTradePrice,
-    spread:
-      bestBid !== null && bestAsk !== null
-        ? bestAsk - bestBid
-        : null,
-  };
-}
+    return {
+      bestBid,
+      bestAsk,
+      lastPrice: this.lastTradePrice,
+      spread: bestBid !== null && bestAsk !== null ? bestAsk - bestBid : null,
+    };
+  }
 }

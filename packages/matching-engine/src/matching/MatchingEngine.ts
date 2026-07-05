@@ -5,7 +5,7 @@ import { OrderBook } from "../orderbook/OrderBook";
 export class MatchingEngine {
   private readonly orderBooks = new Map<string, OrderBook>();
 
-  private getOrderBook(marketId: string): OrderBook {
+  public getOrderBook(marketId: string): OrderBook {
     let orderBook = this.orderBooks.get(marketId);
 
     if (!orderBook) {

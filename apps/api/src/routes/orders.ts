@@ -3,7 +3,7 @@ import { ZodError } from "zod";
 import { prisma } from "../lib/prisma";
 import { CreateOrderSchema } from "../schemas/order";
 import { orderService } from "../services/OrderService";
-import { matchingEngine } from "../engine/matchingEngine";
+import { matchingEngine } from "../lib/matchingEngine";
 
 export async function orderRoutes(app: FastifyInstance) {
   app.post("/orders", async (request, reply) => {
@@ -67,11 +67,9 @@ export async function orderRoutes(app: FastifyInstance) {
 
     return reply.send(orderBook);
   });
-  
+
   app.get("/ticker/:market", async (request, reply) => {
     const { market } = request.params as { market: string };
-    return reply.send(
-        matchingEngine.getTicker(market)
-    );
-});
+    return reply.send(matchingEngine.getTicker(market));
+  });
 }

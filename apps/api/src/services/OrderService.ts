@@ -1,5 +1,5 @@
 import { prisma } from "../lib/prisma";
-import { matchingEngine } from "../engine/matchingEngine";
+import { matchingEngine } from "../lib/matchingEngine";
 import { toEngineOrder } from "../utils/orderMapper";
 
 export class OrderService {
@@ -97,7 +97,7 @@ export class OrderService {
 
     const removedOrder = matchingEngine.cancelOrder(
       order.market.symbol,
-      orderId
+      orderId,
     );
 
     if (!removedOrder) {

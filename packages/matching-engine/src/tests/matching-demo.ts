@@ -1,11 +1,10 @@
-import { OrderBook } from "../orderbook/OrderBook";
 import { MatchingEngine } from "../matching/MatchingEngine";
 
 function createEngine() {
-  const orderBook = new OrderBook();
+  const engine = new MatchingEngine();
+
   return {
-    engine: new MatchingEngine(orderBook),
-    orderBook,
+    engine,
   };
 }
 
@@ -14,12 +13,12 @@ console.log("TEST 1 - FULL MATCH");
 console.log("==============================");
 
 {
-  const { engine, orderBook } = createEngine();
+  const { engine } = createEngine();
 
   engine.submitOrder({
     id: "BUY1",
     userId: "user1",
-    marketId: "BTCUSDT",
+    marketSymbol: "BTCUSDT",
     side: "BUY",
     price: 100000,
     quantity: 1,
@@ -31,7 +30,7 @@ console.log("==============================");
   const trades = engine.submitOrder({
     id: "SELL1",
     userId: "user2",
-    marketId: "BTCUSDT",
+    marketSymbol: "BTCUSDT",
     side: "SELL",
     price: 100000,
     quantity: 1,
@@ -41,8 +40,8 @@ console.log("==============================");
   });
 
   console.log("Trades:", trades);
-  console.log("Bids:", orderBook.getBids());
-  console.log("Asks:", orderBook.getAsks());
+  console.log("Bids:", engine.getOrderBook("BTCUSDT").getBids());
+  console.log("Asks:", engine.getOrderBook("BTCUSDT").getAsks());
 }
 
 console.log("\n==============================");
@@ -50,12 +49,12 @@ console.log("TEST 2 - PARTIAL FILL");
 console.log("==============================");
 
 {
-  const { engine, orderBook } = createEngine();
+  const { engine } = createEngine();
 
   engine.submitOrder({
     id: "BUY1",
     userId: "user1",
-    marketId: "BTCUSDT",
+    marketSymbol: "BTCUSDT",
     side: "BUY",
     price: 100000,
     quantity: 5,
@@ -67,7 +66,7 @@ console.log("==============================");
   const trades = engine.submitOrder({
     id: "SELL1",
     userId: "user2",
-    marketId: "BTCUSDT",
+    marketSymbol: "BTCUSDT",
     side: "SELL",
     price: 100000,
     quantity: 2,
@@ -77,9 +76,9 @@ console.log("==============================");
   });
 
   console.log("Trades:", trades);
-  console.log("Remaining Bids:", orderBook.getBids());
-  console.log("Remaining Asks:", orderBook.getAsks());
-  console.log(orderBook.getBids().get(100000)?.[0]);
+  console.log("Remaining Bids:", engine.getOrderBook("BTCUSDT").getBids());
+  console.log("Remaining Asks:", engine.getOrderBook("BTCUSDT").getAsks());
+  console.log(engine.getOrderBook("BTCUSDT").getBids().get(100000)?.[0]);
 }
 
 console.log("\n==============================");
@@ -87,12 +86,12 @@ console.log("TEST 3 - FIFO");
 console.log("==============================");
 
 {
-  const { engine, orderBook } = createEngine();
+  const { engine } = createEngine();
 
   engine.submitOrder({
     id: "BUY1",
     userId: "user1",
-    marketId: "BTCUSDT",
+    marketSymbol: "BTCUSDT",
     side: "BUY",
     price: 100000,
     quantity: 1,
@@ -104,7 +103,7 @@ console.log("==============================");
   engine.submitOrder({
     id: "BUY2",
     userId: "user2",
-    marketId: "BTCUSDT",
+    marketSymbol: "BTCUSDT",
     side: "BUY",
     price: 100000,
     quantity: 1,
@@ -116,7 +115,7 @@ console.log("==============================");
   const trades = engine.submitOrder({
     id: "SELL1",
     userId: "user3",
-    marketId: "BTCUSDT",
+    marketSymbol: "BTCUSDT",
     side: "SELL",
     price: 100000,
     quantity: 1,
@@ -126,7 +125,7 @@ console.log("==============================");
   });
 
   console.log("Trades:", trades);
-  console.log("Remaining Bids:", orderBook.getBids());
+  console.log("Remaining Bids:", engine.getOrderBook("BTCUSDT").getBids());
 }
 
 console.log("\n==============================");
@@ -134,12 +133,12 @@ console.log("TEST 4 - NO MATCH");
 console.log("==============================");
 
 {
-  const { engine, orderBook } = createEngine();
+  const { engine } = createEngine();
 
   engine.submitOrder({
     id: "BUY1",
     userId: "user1",
-    marketId: "BTCUSDT",
+    marketSymbol: "BTCUSDT",
     side: "BUY",
     price: 100000,
     quantity: 1,
@@ -151,7 +150,7 @@ console.log("==============================");
   const trades = engine.submitOrder({
     id: "SELL1",
     userId: "user2",
-    marketId: "BTCUSDT",
+    marketSymbol: "BTCUSDT",
     side: "SELL",
     price: 101000,
     quantity: 1,
@@ -161,8 +160,8 @@ console.log("==============================");
   });
 
   console.log("Trades:", trades);
-  console.log("Bids:", orderBook.getBids());
-  console.log("Asks:", orderBook.getAsks());
+  console.log("Bids:", engine.getOrderBook("BTCUSDT").getBids());
+  console.log("Asks:", engine.getOrderBook("BTCUSDT").getAsks());
 }
 
 console.log("\n==============================");
@@ -175,7 +174,7 @@ console.log("==============================");
   engine.submitOrder({
     id: "BUY1",
     userId: "user1",
-    marketId: "BTCUSDT",
+    marketSymbol: "BTCUSDT",
     side: "BUY",
     price: 100000,
     quantity: 1,
@@ -184,10 +183,10 @@ console.log("==============================");
     createdAt: new Date(),
   });
 
-  const trades = engine.submitOrder({
+  const result = engine.submitOrder({
     id: "SELL1",
     userId: "user2",
-    marketId: "BTCUSDT",
+    marketSymbol: "BTCUSDT",
     side: "SELL",
     price: 100000,
     quantity: 1,
@@ -196,5 +195,5 @@ console.log("==============================");
     createdAt: new Date(),
   });
 
-  console.log(trades);
+  console.log(result);
 }

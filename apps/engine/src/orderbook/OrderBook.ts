@@ -13,6 +13,39 @@ export class OrderBook {
 
     return this.matchSellOrder(order);
   }
+  cancelOrder(orderId: string): EngineOrder | null {
+  // Search bids
+  for (const [price, queue] of this.bids) {
+    const index = queue.findIndex(order => order.id === orderId);
+
+    if (index !== -1) {
+      const [removedOrder] = queue.splice(index, 1);
+
+      if (queue.length === 0) {
+        this.bids.delete(price);
+      }
+
+      return removedOrder;
+    }
+  }
+
+  // Search asks
+  for (const [price, queue] of this.asks) {
+    const index = queue.findIndex(order => order.id === orderId);
+
+    if (index !== -1) {
+      const [removedOrder] = queue.splice(index, 1);
+
+      if (queue.length === 0) {
+        this.asks.delete(price);
+      }
+
+      return removedOrder;
+    }
+  }
+
+  return null;
+}
 
   private matchBuyOrder(buyOrder: EngineOrder): MatchingResult {
     const trades: Trade[] = [];

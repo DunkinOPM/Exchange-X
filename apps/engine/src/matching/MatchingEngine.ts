@@ -8,4 +8,8 @@ export class MatchingEngine {
   submitOrder(order: EngineOrder): MatchingResult {
     return this.orderBook.addOrder(order);
   }
+
+  cancelOrder(orderId: string): EngineOrder | null {
+    return this.orderBook.cancelOrder(orderId);
+  }
 }

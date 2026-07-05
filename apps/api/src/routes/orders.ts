@@ -35,6 +35,23 @@ export async function orderRoutes(app: FastifyInstance) {
     };
   });
 
+  app.post("/orders/:id/cancel", async (request, reply) => {
+  const { id } = request.params as { id: string };
+
+  try {
+    const order = await orderService.cancelOrder(id);
+
+    return reply.send({
+      message: "Order cancelled.",
+      order,
+    });
+  } catch (error) {
+    return reply.code(400).send({
+      error: error instanceof Error ? error.message : "Unknown error",
+    });
+  }
+});
+
   app.get("/trades", async () => {
     const trades = await prisma.trade.findMany();
 

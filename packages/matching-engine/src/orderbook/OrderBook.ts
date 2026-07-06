@@ -1,6 +1,8 @@
 import { EngineOrder } from "../models/EngineOrder";
 import { Trade } from "../models/Trade";
 import { MatchingResult } from "../models/MatchingResult";
+import { OrderBookSnapshot } from "../models/OrderBookSnapshot";
+import { Ticker } from "../models/Ticker";
 
 export class OrderBook {
   private bids: Map<number, EngineOrder[]> = new Map();
@@ -14,8 +16,8 @@ export class OrderBook {
 
     return this.matchSellOrder(order);
   }
+
   cancelOrder(orderId: string): EngineOrder | null {
-    // Search bids
     for (const [price, queue] of this.bids) {
       const index = queue.findIndex((order) => order.id === orderId);
 
@@ -30,7 +32,6 @@ export class OrderBook {
       }
     }
 
-    // Search asks
     for (const [price, queue] of this.asks) {
       const index = queue.findIndex((order) => order.id === orderId);
 
@@ -68,7 +69,6 @@ export class OrderBook {
         const sellOrder = askQueue[0];
 
         const remainingBuy = buyOrder.quantity - buyOrder.filledQuantity;
-
         const remainingSell = sellOrder.quantity - sellOrder.filledQuantity;
 
         const tradeQuantity = Math.min(remainingBuy, remainingSell);
@@ -78,6 +78,7 @@ export class OrderBook {
 
         this.updateOrderStatus(buyOrder);
         this.updateOrderStatus(sellOrder);
+
         updatedOrders.set(buyOrder.id, buyOrder);
         updatedOrders.set(sellOrder.id, sellOrder);
 
@@ -88,8 +89,8 @@ export class OrderBook {
           quantity: tradeQuantity,
           executedAt: new Date(),
         });
-        this.lastTradePrice =
-          tradeQuantity > 0 ? askPrice : this.lastTradePrice;
+
+        this.lastTradePrice = askPrice;
 
         if (sellOrder.filledQuantity === sellOrder.quantity) {
           askQueue.shift();
@@ -101,7 +102,11 @@ export class OrderBook {
       }
     }
 
-    if (buyOrder.filledQuantity < buyOrder.quantity) {
+    // Only LIMIT orders remain on the book
+    if (
+      buyOrder.type === "LIMIT" &&
+      buyOrder.filledQuantity < buyOrder.quantity
+    ) {
       this.insertBid(buyOrder);
     }
 
@@ -131,7 +136,6 @@ export class OrderBook {
         const buyOrder = bidQueue[0];
 
         const remainingBuy = buyOrder.quantity - buyOrder.filledQuantity;
-
         const remainingSell = sellOrder.quantity - sellOrder.filledQuantity;
 
         const tradeQuantity = Math.min(remainingBuy, remainingSell);
@@ -141,6 +145,7 @@ export class OrderBook {
 
         this.updateOrderStatus(buyOrder);
         this.updateOrderStatus(sellOrder);
+
         updatedOrders.set(buyOrder.id, buyOrder);
         updatedOrders.set(sellOrder.id, sellOrder);
 
@@ -151,8 +156,9 @@ export class OrderBook {
           quantity: tradeQuantity,
           executedAt: new Date(),
         });
-        this.lastTradePrice =
-          tradeQuantity > 0 ? bidPrice : this.lastTradePrice;
+
+        this.lastTradePrice = bidPrice;
+
         if (buyOrder.filledQuantity === buyOrder.quantity) {
           bidQueue.shift();
         }
@@ -163,7 +169,11 @@ export class OrderBook {
       }
     }
 
-    if (sellOrder.filledQuantity < sellOrder.quantity) {
+    // Only LIMIT orders remain on the book
+    if (
+      sellOrder.type === "LIMIT" &&
+      sellOrder.filledQuantity < sellOrder.quantity
+    ) {
       this.insertAsk(sellOrder);
     }
 
@@ -222,7 +232,7 @@ export class OrderBook {
     return levels;
   }
 
-  getOrderBook() {
+  getSnapshot(): OrderBookSnapshot {
     const bids = this.aggregateLevels(this.bids).sort(
       (a, b) => b.price - a.price,
     );
@@ -236,6 +246,7 @@ export class OrderBook {
       asks,
     };
   }
+
   getBids() {
     return this.bids;
   }
@@ -243,7 +254,8 @@ export class OrderBook {
   getAsks() {
     return this.asks;
   }
-  getTicker() {
+
+  getTicker(): Ticker {
     const bids = this.aggregateLevels(this.bids);
     const asks = this.aggregateLevels(this.asks);
 
@@ -257,7 +269,10 @@ export class OrderBook {
       bestBid,
       bestAsk,
       lastPrice: this.lastTradePrice,
-      spread: bestBid !== null && bestAsk !== null ? bestAsk - bestBid : null,
+      spread:
+        bestBid !== null && bestAsk !== null
+          ? bestAsk - bestBid
+          : null,
     };
   }
 }

@@ -2,11 +2,14 @@
   "name": "websocket",
   "private": true,
   "scripts": {
-    "dev": "tsx src/testSubscriber.ts"
+    "dev": "tsx src/server.ts"
   },
   "dependencies": {
     "@exchange/redis": "*",
     "@exchange/shared-events": "*",
-    "tsx": "^4.20.5"
+    "ws": "^8.18.3"
+  },
+  "devDependencies": {
+    "@types/ws": "^8.18.1"
   }
 }

@@ -11,6 +11,8 @@ export function toEngineOrder(order: Order): EngineOrder {
 
     side: order.side as "BUY" | "SELL",
 
+    type: order.type as "LIMIT" | "MARKET",
+
     price: Number(order.price),
 
     quantity: Number(order.quantity),

@@ -11,3 +11,5 @@ export * from "./LocalEventBus";
 export * from "./RedisEventBus";
 export * from "./HybridEventBus";
 export * from "./EventEnvelope";
+export * from "./events/OrderBookUpdatedEvent";
+export * from "./events/TickerUpdatedEvent";

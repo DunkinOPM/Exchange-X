@@ -10,6 +10,7 @@
   },
   "devDependencies": {
     "@types/node": "^26.1.0",
+    "@types/ws": "^8.18.1",
     "prettier": "^3.7.4",
     "turbo": "^2.9.16",
     "typescript": "5.9.2"
@@ -25,6 +26,7 @@
   "dependencies": {
     "@prisma/client": "^6.16.2",
     "dotenv": "^17.4.2",
-    "prisma": "^6.16.2"
+    "prisma": "^6.16.2",
+    "ws": "^8.21.0"
   }
 }

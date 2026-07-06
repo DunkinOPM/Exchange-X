@@ -1,5 +1,7 @@
 export type OrderSide = "BUY" | "SELL";
 
+export type OrderType = "LIMIT" | "MARKET";
+
 export type OrderStatus =
   | "PENDING"
   | "PARTIALLY_FILLED"
@@ -13,6 +15,8 @@ export interface EngineOrder {
   marketSymbol: string;
 
   side: OrderSide;
+
+  type: OrderType;
 
   price: number;
 

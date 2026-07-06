@@ -12,7 +12,7 @@ export class OrderService {
     price?: number;
     quantity: number;
   }) {
-    // Find the market by symbol
+    // Find market
     const market = await prisma.market.findUnique({
       where: {
         symbol: body.market,
@@ -23,7 +23,7 @@ export class OrderService {
       throw new Error("Market not found.");
     }
 
-    // Create the order using the database market ID
+    // Create order
     const order = await prisma.order.create({
       data: {
         userId: body.userId,
@@ -34,23 +34,24 @@ export class OrderService {
         quantity: body.quantity,
       },
     });
-    eventBus.publish(EventNames.ORDER_PLACED, {
-      orderId: order.id,
-      marketSymbol: body.market,
-      side: order.side,
-      price: Number(order.price),
-      quantity: Number(order.quantity),
-    });
+
     // Convert to engine order
     const engineOrder = toEngineOrder(order);
-
-    // The engine should use the market SYMBOL, not the database ID
     engineOrder.marketSymbol = market.symbol;
 
+    // Handle market orders
+    if (body.type === "MARKET") {
+      if (body.side === "BUY") {
+        engineOrder.price = Number.MAX_SAFE_INTEGER;
+      } else {
+        engineOrder.price = 0;
+      }
+    }
+    // Match order
     const result = matchingEngine.submitOrder(engineOrder);
 
+    // Persist trades & order updates
     await prisma.$transaction(async (tx) => {
-      // Save all trades
       for (const trade of result.trades) {
         await tx.trade.create({
           data: {
@@ -62,17 +63,8 @@ export class OrderService {
             executedAt: trade.executedAt,
           },
         });
-        eventBus.publish(EventNames.ORDER_MATCHED, {
-          buyOrderId: trade.buyOrderId,
-          sellOrderId: trade.sellOrderId,
-          marketSymbol: body.market,
-          price: trade.price,
-          quantity: trade.quantity,
-          executedAt: trade.executedAt,
-        });
       }
 
-      // Update all affected orders
       for (const updatedOrder of result.updatedOrders) {
         await tx.order.update({
           where: {
@@ -84,6 +76,41 @@ export class OrderService {
           },
         });
       }
+    });
+
+    // Publish ORDER_PLACED
+    await eventBus.publish(EventNames.ORDER_PLACED, {
+      orderId: order.id,
+      marketSymbol: market.symbol,
+      side: order.side,
+      price: Number(order.price),
+      quantity: Number(order.quantity),
+    });
+
+    // Publish ORDER_MATCHED
+    for (const trade of result.trades) {
+      await eventBus.publish(EventNames.ORDER_MATCHED, {
+        buyOrderId: trade.buyOrderId,
+        sellOrderId: trade.sellOrderId,
+        marketSymbol: market.symbol,
+        price: trade.price,
+        quantity: trade.quantity,
+        executedAt: trade.executedAt,
+      });
+    }
+
+    // Publish OrderBook & Ticker updates
+    const snapshot = matchingEngine.getOrderBookSnapshot(market.symbol);
+    const ticker = matchingEngine.getTicker(market.symbol);
+
+    await eventBus.publish(EventNames.ORDERBOOK_UPDATED, {
+      marketSymbol: market.symbol,
+      snapshot,
+    });
+
+    await eventBus.publish(EventNames.TICKER_UPDATED, {
+      marketSymbol: market.symbol,
+      ticker,
     });
 
     return {
@@ -119,12 +146,7 @@ export class OrderService {
       throw new Error("Order not found in matching engine.");
     }
 
-    eventBus.publish(EventNames.ORDER_CANCELLED, {
-      orderId,
-      marketSymbol: order.market.symbol,
-    });
-
-    return prisma.order.update({
+    const updatedOrder = await prisma.order.update({
       where: {
         id: orderId,
       },
@@ -132,6 +154,26 @@ export class OrderService {
         status: "CANCELLED",
       },
     });
+
+    await eventBus.publish(EventNames.ORDER_CANCELLED, {
+      orderId,
+      marketSymbol: order.market.symbol,
+    });
+
+    const snapshot = matchingEngine.getOrderBookSnapshot(order.market.symbol);
+    const ticker = matchingEngine.getTicker(order.market.symbol);
+
+    await eventBus.publish(EventNames.ORDERBOOK_UPDATED, {
+      marketSymbol: order.market.symbol,
+      snapshot,
+    });
+
+    await eventBus.publish(EventNames.TICKER_UPDATED, {
+      marketSymbol: order.market.symbol,
+      ticker,
+    });
+
+    return updatedOrder;
   }
 }
 

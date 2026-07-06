@@ -2,6 +2,8 @@ import { prisma } from "../lib/prisma";
 import { matchingEngine } from "../lib/matchingEngine";
 import { toEngineOrder } from "../utils/orderMapper";
 import { eventBus, EventNames } from "@exchange/shared-events";
+import { walletService } from "./WalletService";
+import { settlementService } from "./SettlementService";
 
 export class OrderService {
   async createOrder(body: {
@@ -22,7 +24,23 @@ export class OrderService {
     if (!market) {
       throw new Error("Market not found.");
     }
+    if (body.side === "BUY") {
+      if (body.price === undefined) {
+        throw new Error("Price is required for BUY orders.");
+      }
 
+      await walletService.lockBalance(
+        body.userId,
+        market.quoteAssetSymbol,
+        body.price * body.quantity,
+      );
+    } else {
+      await walletService.lockBalance(
+        body.userId,
+        market.baseAssetSymbol,
+        body.quantity,
+      );
+    }
     // Create order
     const order = await prisma.order.create({
       data: {
@@ -77,6 +95,38 @@ export class OrderService {
         });
       }
     });
+    for (const trade of result.trades) {
+  const buyOrder = await prisma.order.findUnique({
+    where: {
+      id: trade.buyOrderId,
+    },
+    include: {
+      market: true,
+    },
+  });
+
+  const sellOrder = await prisma.order.findUnique({
+    where: {
+      id: trade.sellOrderId,
+    },
+    include: {
+      market: true,
+    },
+  });
+
+  if (!buyOrder || !sellOrder) {
+    continue;
+  }
+
+  await settlementService.settleTrade(
+    buyOrder.userId,
+    sellOrder.userId,
+    buyOrder.market.baseAssetSymbol,
+    buyOrder.market.quoteAssetSymbol,
+    trade.price,
+    trade.quantity,
+  );
+}
 
     // Publish ORDER_PLACED
     await eventBus.publish(EventNames.ORDER_PLACED, {

@@ -1,11 +1,13 @@
 import dotenv from "dotenv";
 import { registerEventListeners } from "./events/registerEventListeners";
+import { recoverMatchingEngine } from "./lib/recoverEngine";
+import { walletRoutes } from "./routes/wallet";
+import Fastify from "fastify";
+import { orderRoutes } from "./routes/orders";
 dotenv.config({
   path: "../../.env",
 });
 console.log("DATABASE_URL =", process.env.DATABASE_URL);
-import Fastify from "fastify";
-import { orderRoutes } from "./routes/orders";
 const app = Fastify({
   logger: true,
 });
@@ -18,6 +20,8 @@ app.get("/health", async () => {
 
 const start = async () => {
   try {
+    app.register(walletRoutes);
+    await recoverMatchingEngine();
     registerEventListeners();
     await app.listen({
       port: 4000,

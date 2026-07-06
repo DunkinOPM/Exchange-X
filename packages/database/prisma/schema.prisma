@@ -40,6 +40,7 @@ model User {
 
   wallets      Wallet[]
   orders Order[]
+  balances Balance[]
 
   @@map("users")
 }
@@ -158,4 +159,21 @@ model Transaction {
   @@index([userId])
 
   @@map("transactions")
+}
+
+model Balance {
+  id        String   @id @default(cuid())
+
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  asset     String
+
+  available Decimal @db.Decimal(28, 8)
+  locked    Decimal @db.Decimal(28, 8)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, asset])
 }

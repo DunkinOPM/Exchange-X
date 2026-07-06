@@ -1,6 +1,10 @@
-import { Ticker } from "@exchange/matching-engine";
-
 export interface TickerUpdatedEvent {
   marketSymbol: string;
-  ticker: Ticker;
+
+  ticker: {
+    bestBid: number | null;
+    bestAsk: number | null;
+    lastPrice: number | null;
+    spread: number | null;
+  };
 }

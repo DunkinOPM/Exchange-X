@@ -24,9 +24,9 @@ export class MatchingEngine {
     return this.getOrderBook(marketId).cancelOrder(orderId);
   }
 
-  getOrderBookSnapshot(marketId: string) {
-    return this.getOrderBook(marketId).getOrderBook();
-  }
+  getOrderBookSnapshot(marketSymbol: string) {
+  return this.getOrderBook(marketSymbol).getSnapshot();
+}
 
   getTicker(marketId: string) {
     return this.getOrderBook(marketId).getTicker();

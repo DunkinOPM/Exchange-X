@@ -4,6 +4,10 @@ import { recoverMatchingEngine } from "./lib/recoverEngine";
 import { walletRoutes } from "./routes/wallet";
 import Fastify from "fastify";
 import { orderRoutes } from "./routes/orders";
+import { marketRoutes } from "./routes/markets";
+import cors from "@fastify/cors";
+import { candleRoutes } from "./routes/candles";
+import { tradeRoutes } from "./routes/trades";
 dotenv.config({
   path: "../../.env",
 });
@@ -20,9 +24,22 @@ app.get("/health", async () => {
 
 const start = async () => {
   try {
+    await app.register(cors, {
+      origin: "http://localhost:3000",
+      methods: ["GET", "POST", "PUT", "DELETE"],
+    });
+
+    app.register(orderRoutes);
     app.register(walletRoutes);
+    app.register(marketRoutes);
+    app.register(candleRoutes);
+    app.register(tradeRoutes, {
+      prefix: "/trades",
+    });
     await recoverMatchingEngine();
+
     registerEventListeners();
+
     await app.listen({
       port: 4000,
       host: "0.0.0.0",
@@ -34,5 +51,5 @@ const start = async () => {
     process.exit(1);
   }
 };
-app.register(orderRoutes);
+
 start();

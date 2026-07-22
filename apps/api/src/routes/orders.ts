@@ -7,26 +7,48 @@ import { matchingEngine } from "../lib/matchingEngine";
 
 export async function orderRoutes(app: FastifyInstance) {
   app.post("/orders", async (request, reply) => {
-    try {
-      const body = CreateOrderSchema.parse(request.body);
+  try {
+    const body = CreateOrderSchema.parse(request.body);
 
-      const { order, trades } = await orderService.createOrder(body);
+    const { order, trades } = await orderService.createOrder(body);
 
-      return reply.code(201).send({
-        order,
-        trades,
+    return reply.code(201).send({
+      order,
+      trades,
+    });
+  } catch (error) {
+    if (error instanceof ZodError) {
+      return reply.code(400).send({
+        error: "Validation Error",
+        details: error.issues,
       });
-    } catch (error) {
-      if (error instanceof ZodError) {
+    }
+
+    if (error instanceof Error) {
+      console.error(error);
+
+      // Business errors
+      if (
+        error.message === "Insufficient balance." ||
+        error.message.includes("Balance") ||
+        error.message.includes("not found")
+      ) {
         return reply.code(400).send({
-          error: "Validation Error",
-          details: error.issues,
+          error: error.message,
         });
       }
 
-      throw error;
+      // Unexpected server errors
+      return reply.code(500).send({
+        error: error.message,
+      });
     }
-  });
+
+    return reply.code(500).send({
+      error: "Unknown error",
+    });
+  }
+});
 
   app.get("/orders", async () => {
     const orders = await prisma.order.findMany();
@@ -47,6 +69,15 @@ export async function orderRoutes(app: FastifyInstance) {
         order,
       });
     } catch (error) {
+      console.error("\n========== CANCEL ORDER ERROR ==========");
+      console.error(error);
+      if (error instanceof Error) {
+        console.error("Message:", error.message);
+        console.error("Stack:");
+        console.error(error.stack);
+      }
+      console.error("========================================\n");
+
       return reply.code(400).send({
         error: error instanceof Error ? error.message : "Unknown error",
       });
@@ -71,5 +102,15 @@ export async function orderRoutes(app: FastifyInstance) {
   app.get("/ticker/:market", async (request, reply) => {
     const { market } = request.params as { market: string };
     return reply.send(matchingEngine.getTicker(market));
+  });
+
+  app.get("/orders/open/:userId", async (request) => {
+    const { userId } = request.params as { userId: string };
+    const { market } = request.query as { market?: string };
+
+    console.log("User:", userId);
+    console.log("Market:", market);
+
+    return orderService.getOpenOrders(userId, market);
   });
 }

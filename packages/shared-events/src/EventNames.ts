@@ -4,4 +4,6 @@ export const EventNames = {
   ORDER_CANCELLED: "order.cancelled",
   ORDERBOOK_UPDATED: "orderbook.updated",
   TICKER_UPDATED: "ticker.updated",
+
+  CANDLE_UPDATED: "candle.updated",
 } as const;

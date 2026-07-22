@@ -1,5 +1,4 @@
 import { prisma } from "../lib/prisma";
-
 export class SettlementService {
   async settleTrade(
     buyerId: string,

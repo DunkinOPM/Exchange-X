@@ -26,7 +26,7 @@ wss.on("connection", (ws: WebSocket) => {
       type: "connected",
       message: "Welcome to Exchange WS",
       timestamp: new Date().toISOString(),
-    })
+    }),
   );
 
   ws.on("message", (raw) => {
@@ -40,16 +40,12 @@ wss.on("connection", (ws: WebSocket) => {
               JSON.stringify({
                 type: "error",
                 message: "channel and market are required",
-              })
+              }),
             );
             return;
           }
 
-          subscriptionManager.subscribe(
-            message.channel,
-            message.market,
-            ws
-          );
+          subscriptionManager.subscribe(message.channel, message.market, ws);
 
           clientSubscriptions.push({
             channel: message.channel,
@@ -61,11 +57,42 @@ wss.on("connection", (ws: WebSocket) => {
               type: "subscribed",
               channel: message.channel,
               market: message.market,
-            })
+            }),
           );
 
           console.log(
-            `📈 Client subscribed to ${message.channel}:${message.market}`
+            `📈 Client subscribed to ${message.channel}:${message.market}`,
+          );
+
+          break;
+        }
+
+        case "UNSUBSCRIBE": {
+          if (!message.channel || !message.market) {
+            return;
+          }
+
+          subscriptionManager.unsubscribe(message.channel, message.market, ws);
+
+          const index = clientSubscriptions.findIndex(
+            (sub) =>
+              sub.channel === message.channel && sub.market === message.market,
+          );
+
+          if (index !== -1) {
+            clientSubscriptions.splice(index, 1);
+          }
+
+          ws.send(
+            JSON.stringify({
+              type: "unsubscribed",
+              channel: message.channel,
+              market: message.market,
+            }),
+          );
+
+          console.log(
+            `📉 Client unsubscribed from ${message.channel}:${message.market}`,
           );
 
           break;
@@ -76,7 +103,7 @@ wss.on("connection", (ws: WebSocket) => {
             JSON.stringify({
               type: "error",
               message: "Unknown message type",
-            })
+            }),
           );
       }
     } catch (err) {
@@ -86,18 +113,14 @@ wss.on("connection", (ws: WebSocket) => {
         JSON.stringify({
           type: "error",
           message: "Invalid JSON",
-        })
+        }),
       );
     }
   });
 
   ws.on("close", () => {
     for (const sub of clientSubscriptions) {
-      subscriptionManager.unsubscribe(
-        sub.channel,
-        sub.market,
-        ws
-      );
+      subscriptionManager.unsubscribe(sub.channel, sub.market, ws);
     }
 
     console.log("❌ Client disconnected");

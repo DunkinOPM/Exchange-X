@@ -93,6 +93,7 @@ model Market {
   createdAt DateTime @default(now())
 
   orders Order[]
+  trades Trade[]
 
   @@map("markets")
 }
@@ -120,6 +121,9 @@ model Order {
 
   market Market @relation(fields: [marketId], references: [id])
 
+  buyTrades  Trade[] @relation("BuyOrder")
+  sellTrades Trade[] @relation("SellOrder")
+
   @@index([marketId])
   @@index([status])
 
@@ -138,11 +142,15 @@ model Trade {
 
   executedAt DateTime @default(now())
 
+  buyOrder Order @relation("BuyOrder", fields: [buyOrderId], references: [id])
+  sellOrder Order @relation("SellOrder", fields: [sellOrderId], references: [id])
+
+  market Market @relation(fields: [marketId], references: [id])
+
   @@index([marketId])
 
   @@map("trades")
 }
-
 model Transaction {
   id String @id @default(cuid())
 

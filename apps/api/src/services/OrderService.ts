@@ -4,7 +4,7 @@ import { toEngineOrder } from "../utils/orderMapper";
 import { eventBus, EventNames } from "@exchange/shared-events";
 import { walletService } from "./WalletService";
 import { settlementService } from "./SettlementService";
-
+import { candleService } from "./CandleService";
 export class OrderService {
   async createOrder(body: {
     userId: string;
@@ -67,6 +67,8 @@ export class OrderService {
     }
     // Match order
     const result = matchingEngine.submitOrder(engineOrder);
+    console.log("Trades:", result.trades.length);
+    console.log(result.trades);
 
     // Persist trades & order updates
     await prisma.$transaction(async (tx) => {
@@ -96,38 +98,49 @@ export class OrderService {
       }
     });
     for (const trade of result.trades) {
-  const buyOrder = await prisma.order.findUnique({
-    where: {
-      id: trade.buyOrderId,
-    },
-    include: {
-      market: true,
-    },
-  });
+      const buyOrder = await prisma.order.findUnique({
+        where: {
+          id: trade.buyOrderId,
+        },
+        include: {
+          market: true,
+        },
+      });
 
-  const sellOrder = await prisma.order.findUnique({
-    where: {
-      id: trade.sellOrderId,
-    },
-    include: {
-      market: true,
-    },
-  });
+      const sellOrder = await prisma.order.findUnique({
+        where: {
+          id: trade.sellOrderId,
+        },
+        include: {
+          market: true,
+        },
+      });
 
-  if (!buyOrder || !sellOrder) {
-    continue;
-  }
+      if (!buyOrder || !sellOrder) {
+        continue;
+      }
 
-  await settlementService.settleTrade(
-    buyOrder.userId,
-    sellOrder.userId,
-    buyOrder.market.baseAssetSymbol,
-    buyOrder.market.quoteAssetSymbol,
-    trade.price,
-    trade.quantity,
-  );
-}
+      await settlementService.settleTrade(
+        buyOrder.userId,
+        sellOrder.userId,
+        buyOrder.market.baseAssetSymbol,
+        buyOrder.market.quoteAssetSymbol,
+        trade.price,
+        trade.quantity,
+      );
 
+      candleService.processTrade(
+        market.symbol,
+        trade.price,
+        trade.quantity,
+        trade.executedAt,
+      );
+      console.log(
+        "🕯️ Candle Updated:",
+        candleService.getCurrentCandle(market.symbol),
+      );
+    }
+    console.log("🚀 Publishing ORDERBOOK_UPDATED");
     // Publish ORDER_PLACED
     await eventBus.publish(EventNames.ORDER_PLACED, {
       orderId: order.id,
@@ -147,6 +160,15 @@ export class OrderService {
         quantity: trade.quantity,
         executedAt: trade.executedAt,
       });
+
+      const candle = candleService.getCurrentCandle(market.symbol);
+
+      if (candle) {
+        await eventBus.publish(EventNames.CANDLE_UPDATED, {
+          marketSymbol: market.symbol,
+          candle,
+        });
+      }
     }
 
     // Publish OrderBook & Ticker updates
@@ -224,6 +246,27 @@ export class OrderService {
     });
 
     return updatedOrder;
+  }
+  async getOpenOrders(userId: string, market?: string) {
+    return prisma.order.findMany({
+      where: {
+        userId,
+        status: {
+          in: ["PENDING", "PARTIALLY_FILLED"],
+        },
+        ...(market && {
+          market: {
+            symbol: market,
+          },
+        }),
+      },
+      include: {
+        market: true,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
   }
 }
 

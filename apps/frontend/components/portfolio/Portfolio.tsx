@@ -1,23 +1,43 @@
 "use client";
 
 import { useEffect } from "react";
-import { fetchPortfolio } from "../../services/portfolio";
+
 import { usePortfolioStore } from "../../store/portfolioStore";
 import { useUserStore } from "../../store/userStore";
 
-
 export default function Portfolio() {
-  const balances = usePortfolioStore((s) => s.balances);
-  const setBalances = usePortfolioStore((s) => s.setBalances);
-  const user = useUserStore((s) => s.currentUser);
+  const { currentUser } = useUserStore();
+
+  const {
+    balances,
+    loading,
+    error,
+    loadPortfolio,
+  } = usePortfolioStore();
 
   useEffect(() => {
-    fetchPortfolio(user.id).then(setBalances);
-  }, [setBalances]);
+    loadPortfolio(currentUser.id);
+  }, [currentUser.id, loadPortfolio]);
+
+  if (loading) {
+    return (
+      <div className="h-full rounded-lg bg-zinc-900 p-4 flex items-center justify-center">
+        Loading Portfolio...
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="h-full rounded-lg bg-zinc-900 p-4 flex items-center justify-center text-red-500">
+        {error}
+      </div>
+    );
+  }
 
   return (
-    <div className="h-full rounded-lg bg-zinc-900 p-4 overflow-auto">
-      <h2 className="font-semibold mb-4">
+    <div className="h-full overflow-auto rounded-lg bg-zinc-900 p-4">
+      <h2 className="mb-4 font-semibold">
         Portfolio
       </h2>
 

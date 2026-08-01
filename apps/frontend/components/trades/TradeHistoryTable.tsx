@@ -2,19 +2,17 @@
 
 import { useMemo } from "react";
 import { useMyTradesStore } from "../../store/myTradesStore";
+
+import Badge from "../common/Badge";
+import EmptyState from "../common/EmptyState";
+import Skeleton from "../common/Skeleton";
 export default function TradeHistoryTable() {
   const { trades, loading, error } = useMyTradesStore();
 
   const rows = useMemo(() => trades, [trades]);
 
   if (loading) {
-    return (
-      <div className="space-y-4 animate-pulse">
-        {[1, 2, 3, 4, 5].map((i) => (
-          <div key={i} className="h-10 rounded bg-zinc-800" />
-        ))}
-      </div>
-    );
+    return <Skeleton rows={6} />;
   }
 
   if (error) {
@@ -27,21 +25,17 @@ export default function TradeHistoryTable() {
 
   if (rows.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 text-zinc-500">
-        <div className="text-5xl">📈</div>
-
-        <h2 className="mt-4 text-xl font-semibold text-white">
-          No Trade History
-        </h2>
-
-        <p className="mt-2">Your completed trades will appear here.</p>
-      </div>
+      <EmptyState
+        icon="📈"
+        title="No Trade History"
+        description="Your completed trades will appear here."
+      />
     );
   }
 
   return (
     <div className="overflow-hidden rounded-lg border border-neutral-800 bg-neutral-900">
-      <table className="w-full text-sm">
+      <table className="w-full border-collapse text-sm">
         <thead className="sticky top-0 bg-zinc-900">
           <tr className="border-b border-zinc-800 text-zinc-400">
             <th className="py-3 text-left">Market</th>
@@ -62,31 +56,38 @@ export default function TradeHistoryTable() {
               <td className="py-3 font-medium">{trade.market}</td>
 
               <td>
-                <span
-                  className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                    trade.side === "BUY"
-                      ? "bg-green-500/20 text-green-400"
-                      : "bg-red-500/20 text-red-400"
-                  }`}
-                >
+                <Badge variant={trade.side === "BUY" ? "buy" : "sell"}>
                   {trade.side}
-                </span>
+                </Badge>
               </td>
 
               <td className="text-right font-mono">
-                {trade.price.toLocaleString()}
+                {trade.price.toLocaleString(undefined, {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
               </td>
 
               <td className="text-right font-mono">
-                {trade.quantity.toFixed(4)}
+                {trade.quantity.toLocaleString(undefined, {
+                  minimumFractionDigits: 4,
+                  maximumFractionDigits: 4,
+                })}
               </td>
 
               <td className="text-right font-semibold">
-                {trade.total.toLocaleString()}
+                {trade.total.toLocaleString(undefined, {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
               </td>
 
               <td className="text-right text-zinc-400">
-                {new Date(trade.executedAt).toLocaleTimeString()}
+                {new Date(trade.executedAt).toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  second: "2-digit",
+                })}
               </td>
             </tr>
           ))}

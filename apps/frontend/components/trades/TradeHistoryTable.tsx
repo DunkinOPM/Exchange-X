@@ -9,8 +9,10 @@ export default function TradeHistoryTable() {
 
   if (loading) {
     return (
-      <div className="rounded-lg border border-neutral-800 bg-neutral-900 p-6 text-center text-neutral-400">
-        Loading trade history...
+      <div className="space-y-4 animate-pulse">
+        {[1, 2, 3, 4, 5].map((i) => (
+          <div key={i} className="h-10 rounded bg-zinc-800" />
+        ))}
       </div>
     );
   }
@@ -25,8 +27,14 @@ export default function TradeHistoryTable() {
 
   if (rows.length === 0) {
     return (
-      <div className="rounded-lg border border-neutral-800 bg-neutral-900 p-6 text-center text-neutral-400">
-        No trades found.
+      <div className="flex flex-col items-center justify-center py-20 text-zinc-500">
+        <div className="text-5xl">📈</div>
+
+        <h2 className="mt-4 text-xl font-semibold text-white">
+          No Trade History
+        </h2>
+
+        <p className="mt-2">Your completed trades will appear here.</p>
       </div>
     );
   }
@@ -34,68 +42,51 @@ export default function TradeHistoryTable() {
   return (
     <div className="overflow-hidden rounded-lg border border-neutral-800 bg-neutral-900">
       <table className="w-full text-sm">
-        <thead className="border-b border-neutral-800 bg-neutral-950">
-          <tr>
-            <th className="px-4 py-3 text-left font-medium text-neutral-400">
-              Time
-            </th>
-
-            <th className="px-4 py-3 text-left font-medium text-neutral-400">
-              Market
-            </th>
-
-            <th className="px-4 py-3 text-left font-medium text-neutral-400">
-              Side
-            </th>
-
-            <th className="px-4 py-3 text-right font-medium text-neutral-400">
-              Price
-            </th>
-
-            <th className="px-4 py-3 text-right font-medium text-neutral-400">
-              Quantity
-            </th>
-
-            <th className="px-4 py-3 text-right font-medium text-neutral-400">
-              Total
-            </th>
+        <thead className="sticky top-0 bg-zinc-900">
+          <tr className="border-b border-zinc-800 text-zinc-400">
+            <th className="py-3 text-left">Market</th>
+            <th className="py-3">Side</th>
+            <th className="py-3 text-right">Price</th>
+            <th className="py-3 text-right">Quantity</th>
+            <th className="py-3 text-right">Total</th>
+            <th className="py-3 text-right">Time</th>
           </tr>
         </thead>
 
         <tbody>
-          {rows.map((trade) => (
+          {trades.map((trade) => (
             <tr
-              key={trade.id}
-              className="border-b border-neutral-800 hover:bg-neutral-800/40"
+              key={`${trade.id}-${trade.side}`}
+              className="border-b border-zinc-800 hover:bg-zinc-800/40 transition-colors"
             >
-              <td className="px-4 py-3 text-neutral-300">
-                {new Date(trade.executedAt).toLocaleString()}
+              <td className="py-3 font-medium">{trade.market}</td>
+
+              <td>
+                <span
+                  className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                    trade.side === "BUY"
+                      ? "bg-green-500/20 text-green-400"
+                      : "bg-red-500/20 text-red-400"
+                  }`}
+                >
+                  {trade.side}
+                </span>
               </td>
 
-              <td className="px-4 py-3 font-medium text-white">
-                {trade.market}
-              </td>
-
-              <td
-                className={`px-4 py-3 font-semibold ${
-                  trade.side === "BUY"
-                    ? "text-green-500"
-                    : "text-red-500"
-                }`}
-              >
-                {trade.side}
-              </td>
-
-              <td className="px-4 py-3 text-right text-neutral-300">
+              <td className="text-right font-mono">
                 {trade.price.toLocaleString()}
               </td>
 
-              <td className="px-4 py-3 text-right text-neutral-300">
-                {trade.quantity.toLocaleString()}
+              <td className="text-right font-mono">
+                {trade.quantity.toFixed(4)}
               </td>
 
-              <td className="px-4 py-3 text-right font-medium text-white">
+              <td className="text-right font-semibold">
                 {trade.total.toLocaleString()}
+              </td>
+
+              <td className="text-right text-zinc-400">
+                {new Date(trade.executedAt).toLocaleTimeString()}
               </td>
             </tr>
           ))}

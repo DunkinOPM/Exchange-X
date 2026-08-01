@@ -1,6 +1,7 @@
 import { create } from "zustand";
+import { getOpenOrders } from "../services/orders";
 
-interface Order {
+export interface OpenOrder {
   id: string;
   side: "BUY" | "SELL";
   price: number;
@@ -12,16 +13,51 @@ interface Order {
 }
 
 interface Store {
-  orders: Order[];
+  orders: OpenOrder[];
+  loading: boolean;
+  error: string | null;
 
-  setOrders: (orders: Order[]) => void;
+  loadOrders: (
+    userId: string,
+    market?: string
+  ) => Promise<void>;
+
+  clear: () => void;
 }
 
 export const useOpenOrdersStore = create<Store>((set) => ({
   orders: [],
+  loading: false,
+  error: null,
 
-  setOrders: (orders) =>
+  loadOrders: async (userId, market) => {
     set({
-      orders,
+      loading: true,
+      error: null,
+    });
+
+    try {
+      const orders = await getOpenOrders(userId, market);
+
+      set({
+        orders,
+        loading: false,
+      });
+    } catch (err) {
+      set({
+        loading: false,
+        error:
+          err instanceof Error
+            ? err.message
+            : "Failed to load orders",
+      });
+    }
+  },
+
+  clear: () =>
+    set({
+      orders: [],
+      loading: false,
+      error: null,
     }),
 }));

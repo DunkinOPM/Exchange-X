@@ -1,103 +1,96 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import { toast } from "sonner";
-import { cancelOrder, getOpenOrders } from "../../services/orders";
-import { useMarketStore } from "../../store/marketStore";
+import { useEffect } from "react";
+
 import { useOpenOrdersStore } from "../../store/openOrdersStore";
-import { useTradesStore } from "../../store/tradesStore";
 import { useUserStore } from "../../store/userStore";
 
+import Badge from "../common/Badge";
+import EmptyState from "../common/EmptyState";
+import Skeleton from "../common/Skeleton";
+
 export default function OpenOrders() {
-  const orders = useOpenOrdersStore((s) => s.orders);
-  const setOrders = useOpenOrdersStore((s) => s.setOrders);
+  const { currentUser } = useUserStore();
 
-  const trades = useTradesStore((s) => s.trades);
-  const user = useUserStore((s) => s.currentUser);
-  const market = useMarketStore((s) => s.selectedMarket);
-
-  const [loading, setLoading] = useState(true);
-
-  const loadOrders = useCallback(async () => {
-    try {
-      setLoading(true);
-
-      const data = await getOpenOrders(user.id, market);
-      setOrders(data);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  }, [user.id, market, setOrders]);
+  const { orders, loading, error, loadOrders } = useOpenOrdersStore();
 
   useEffect(() => {
-    loadOrders();
-  }, [loadOrders]);
-
-  // Refresh whenever a trade executes
-  useEffect(() => {
-    loadOrders();
-  }, [trades, loadOrders]);
+    loadOrders(currentUser.id);
+  }, [currentUser.id, loadOrders]);
 
   if (loading) {
     return (
-      <div className="rounded-lg bg-zinc-900 p-4 h-full">
-        <h2 className="mb-4 font-semibold">Open Orders</h2>
-
-        <div className="text-zinc-500">Loading...</div>
+      <div className="rounded-xl bg-zinc-900 p-4">
+        <Skeleton rows={5} />
       </div>
     );
   }
 
+  if (error) {
+    return (
+      <div className="rounded-lg bg-zinc-900 p-4 text-red-500">{error}</div>
+    );
+  }
+
   return (
-    <div className="rounded-lg bg-zinc-900 p-4 h-full overflow-auto">
-      <h2 className="mb-4 font-semibold">Open Orders</h2>
+    <div className="rounded-lg bg-zinc-900 p-4">
+      <h2 className="mb-4 text-xl font-bold tracking-wide">Open Orders</h2>
 
       {orders.length === 0 ? (
-        <div className="text-zinc-500 text-sm">
-          No open orders for {market}.
-        </div>
+        <EmptyState
+          icon="📂"
+          title="No Open Orders"
+          description="Your active orders will appear here."
+        />
       ) : (
-        orders.map((order) => (
-          <div
-            key={order.id}
-            className="grid grid-cols-5 items-center gap-2 border-b border-zinc-800 py-2 text-sm"
-          >
-            <span>{order.market.symbol}</span>
+        <table className="w-full border-collapse text-sm">
+          <thead className="sticky top-0 bg-zinc-900">
+            <tr className="border-b border-zinc-800 transition-colors hover:bg-zinc-800/40">
+              <th className="py-2 text-left">Market</th>
+              <th className="py-2">Side</th>
+              <th className="py-2">Price</th>
+              <th className="py-2">Quantity</th>
+              <th className="py-2">Status</th>
+            </tr>
+          </thead>
 
-            <span
-              className={
-                order.side === "BUY" ? "text-green-400" : "text-red-400"
-              }
-            >
-              {order.side}
-            </span>
+          <tbody>
+            {orders.map((order) => (
+              <tr
+                key={order.id}
+                className="border-b border-zinc-800 transition-colors hover:bg-zinc-800/40"
+              >
+                <td>{order.market.symbol}</td>
 
-            <span>{Number(order.price).toLocaleString()}</span>
+                <td>
+                  <Badge variant={order.side === "BUY" ? "buy" : "sell"}>
+                    {order.side}
+                  </Badge>
+                </td>
 
-            <span>{Number(order.quantity).toLocaleString()}</span>
+                <td className="text-right font-mono">{order.price.toLocaleString()}</td>
 
-            <button
-              className="rounded bg-red-600 px-2 py-1 hover:bg-red-500 transition-colors"
-              onClick={async () => {
-                try {
-                  await cancelOrder(order.id);
+                <td className="text-center font-mono">{order.quantity.toFixed(4)}</td>
 
-                  toast.success("Order cancelled successfully.");
-
-                  loadOrders();
-                } catch (error: any) {
-                  toast.error(
-                    error?.response?.data?.error ?? "Failed to cancel order.",
-                  );
-                }
-              }}
-            >
-              Cancel
-            </button>
-          </div>
-        ))
+                <td>
+                  <Badge
+                    variant={
+                      order.status === "PENDING"
+                        ? "warning"
+                        : order.status === "FILLED"
+                          ? "success"
+                          : order.status === "CANCELLED"
+                            ? "danger"
+                            : "neutral"
+                    }
+                  >
+                    {order.status}
+                  </Badge>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       )}
     </div>
   );

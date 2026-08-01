@@ -6,12 +6,15 @@ import RecentTrades from "../trades/RecentTrades";
 import BuySellPanel from "../trading/BuySellPanel";
 import Portfolio from "../portfolio/Portfolio";
 import OpenOrders from "../orders/OpenOrders";
+import DashboardStats from "../dashboard/DashboardStats";
 
 export default function DashboardPage() {
   return (
     <>
-      <div className="flex flex-1 gap-2">
+      <DashboardStats />
 
+      <div className="flex flex-1 gap-2"></div>
+      <div className="flex flex-1 gap-2">
         {/* Order Book */}
         <div className="w-80">
           <OrderBook />
@@ -19,7 +22,6 @@ export default function DashboardPage() {
 
         {/* Center */}
         <div className="flex-1 flex flex-col gap-2">
-
           <div className="flex-1">
             <TradingChart />
           </div>
@@ -31,14 +33,12 @@ export default function DashboardPage() {
           <div className="h-64">
             <OpenOrders />
           </div>
-
         </div>
 
         {/* Recent Trades */}
         <div className="w-80">
           <RecentTrades />
         </div>
-
       </div>
 
       {/* Portfolio */}

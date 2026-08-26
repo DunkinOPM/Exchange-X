@@ -1,35 +1,39 @@
 import { api } from "./api";
 
 export async function placeOrder(data: {
-  userId: string;
   market: string;
   side: "BUY" | "SELL";
   type: "LIMIT" | "MARKET";
   price?: number;
   quantity: number;
 }) {
-  const response = await api.post("/orders", data);
+  const { data: response } = await api.post(
+    "/orders",
+    data,
+  );
 
-  return response.data;
+  return response;
 }
 
 export async function cancelOrder(id: string) {
-  return api.delete(`/orders/${id}`);
+  const { data } = await api.post(
+    `/orders/${id}/cancel`,
+  );
+
+  return data;
 }
 
 export async function getOpenOrders(
-  userId: string,
-  market?: string
+  market?: string,
 ) {
-  const params = new URLSearchParams();
-
-  if (market) {
-    params.append("market", market);
-  }
-
-  const response = await fetch(
-    `http://localhost:4000/orders/open/${userId}?${params.toString()}`
+  const { data } = await api.get(
+    "/orders/open",
+    {
+      params: {
+        market,
+      },
+    },
   );
 
-  return response.json();
+  return data;
 }

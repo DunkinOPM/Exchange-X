@@ -25,20 +25,25 @@ export class OrderService {
       throw new Error("Market not found.");
     }
     if (body.side === "BUY") {
-      if (body.price === undefined) {
-        throw new Error("Price is required for BUY orders.");
+      let requiredQuote: number;
+
+      if (body.type === "LIMIT") {
+        if (body.price === undefined) {
+          throw new Error("Price is required for LIMIT BUY.");
+        }
+
+        requiredQuote = body.price * body.quantity;
+      } else {
+        requiredQuote = matchingEngine.estimateMarketBuyCost(
+          market.symbol,
+          body.quantity,
+        );
       }
 
       await walletService.lockBalance(
         body.userId,
         market.quoteAssetSymbol,
-        body.price * body.quantity,
-      );
-    } else {
-      await walletService.lockBalance(
-        body.userId,
-        market.baseAssetSymbol,
-        body.quantity,
+        requiredQuote,
       );
     }
     // Create order
@@ -191,7 +196,7 @@ export class OrderService {
     };
   }
 
-  async cancelOrder(orderId: string) {
+  async cancelOrder(orderId: string, userId: string) {
     const order = await prisma.order.findUnique({
       where: {
         id: orderId,
@@ -203,6 +208,10 @@ export class OrderService {
 
     if (!order) {
       throw new Error("Order not found.");
+    }
+
+    if (order.userId !== userId) {
+      throw new Error("You are not authorized to cancel this order.");
     }
 
     if (order.status === "FILLED") {
@@ -248,7 +257,7 @@ export class OrderService {
     return updatedOrder;
   }
   async getOpenOrders(userId: string, market?: string) {
-    return prisma.order.findMany({
+    const orders = await prisma.order.findMany({
       where: {
         userId,
         status: {
@@ -267,7 +276,13 @@ export class OrderService {
         createdAt: "desc",
       },
     });
+
+    return orders.map((order) => ({
+      ...order,
+      price: order.price ? Number(order.price) : null,
+      quantity: Number(order.quantity),
+      filledQuantity: Number(order.filledQuantity),
+    }));
   }
 }
-
 export const orderService = new OrderService();

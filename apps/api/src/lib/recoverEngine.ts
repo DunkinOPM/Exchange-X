@@ -20,11 +20,21 @@ export async function recoverMatchingEngine() {
   });
 
   for (const order of orders) {
-    const engineOrder = toEngineOrder(order);
-    engineOrder.marketSymbol = order.market.symbol;
+  console.log({
+    id: order.id,
+    userId: order.userId,
+    side: order.side,
+    type: order.type,
+    price: Number(order.price),
+    quantity: Number(order.quantity),
+    status: order.status,
+  });
 
-    matchingEngine.submitOrder(engineOrder);
-  }
+  const engineOrder = toEngineOrder(order);
+  engineOrder.marketSymbol = order.market.symbol;
+
+  matchingEngine.submitOrder(engineOrder);
+}
 
   console.log(`Recovered ${orders.length} open orders.`);
 }

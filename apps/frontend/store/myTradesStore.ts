@@ -1,12 +1,16 @@
 import { create } from "zustand";
-import { getMyTrades, TradeHistory } from "../services/trades";
+import {
+  getMyTrades,
+  TradeHistory,
+} from "../services/trades";
+
 interface MyTradesStore {
   trades: TradeHistory[];
   loading: boolean;
   error: string | null;
 
-  loadTrades: (userId: string) => Promise<void>;
-  clear: () => void;
+  loadTrades(): Promise<void>;
+  clear(): void;
 }
 
 export const useMyTradesStore = create<MyTradesStore>((set) => ({
@@ -14,14 +18,14 @@ export const useMyTradesStore = create<MyTradesStore>((set) => ({
   loading: false,
   error: null,
 
-  loadTrades: async (userId: string) => {
+  loadTrades: async () => {
     set({
       loading: true,
       error: null,
     });
 
     try {
-      const trades = await getMyTrades(userId);
+      const trades = await getMyTrades();
 
       set({
         trades,

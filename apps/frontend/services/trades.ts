@@ -10,14 +10,8 @@ export interface TradeHistory {
   executedAt: string;
 }
 
-export async function getMyTrades(
-  userId: string,
-): Promise<TradeHistory[]> {
-  const { data } = await api.get<TradeHistory[]>("/trades/me", {
-    params: {
-      userId,
-    },  
-  });
+export async function getMyTrades(): Promise<TradeHistory[]> {
+  const { data } = await api.get<TradeHistory[]>("/trades/me");
 
   return data;
 }

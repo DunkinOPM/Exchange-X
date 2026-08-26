@@ -7,17 +7,18 @@ import AssetCard from "../../components/portfolio/AssetCard";
 import PortfolioSummary from "../../components/portfolio/PortfolioSummary";
 
 import { usePortfolioStore } from "../../store/portfolioStore";
-import { useUserStore } from "../../store/userStore";
+import { useAuthStore } from "../../store/authStore";
 
 export default function PortfolioPage() {
-  const { currentUser } = useUserStore();
+  const user = useAuthStore((s) => s.user);
 
   const { balances, loading, error, loadPortfolio } = usePortfolioStore();
 
   useEffect(() => {
-    loadPortfolio(currentUser.id);
-  }, [currentUser.id, loadPortfolio]);
-
+    if (!user) return;
+    loadPortfolio();
+  }, [loadPortfolio]);
+  if (!user) return null;
   return (
     <DashboardLayout>
       <div className="mx-auto max-w-7xl">

@@ -8,12 +8,8 @@ export interface Balance {
   locked: number;
 }
 
-export async function getPortfolio(
-  userId: string,
-): Promise<Balance[]> {
-  const { data } = await api.get<Balance[]>(
-    `/wallet/${userId}`,
-  );
+export async function getPortfolio(): Promise<Balance[]> {
+  const { data } = await api.get<Balance[]>("/wallet");
 
   return data.map((balance) => ({
     ...balance,

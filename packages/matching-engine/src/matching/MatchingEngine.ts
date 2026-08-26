@@ -25,10 +25,14 @@ export class MatchingEngine {
   }
 
   getOrderBookSnapshot(marketSymbol: string) {
-  return this.getOrderBook(marketSymbol).getSnapshot();
-}
+    return this.getOrderBook(marketSymbol).getSnapshot();
+  }
 
   getTicker(marketId: string) {
     return this.getOrderBook(marketId).getTicker();
+  }
+
+  estimateMarketBuyCost(marketSymbol: string, quantity: number): number {
+    return this.getOrderBook(marketSymbol).estimateMarketBuyCost(quantity);
   }
 }

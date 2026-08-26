@@ -26,11 +26,6 @@ const links = [
     label: "Trade History",
     icon: History,
   },
-  {
-    href: "/orders",
-    label: "Open Orders",
-    icon: ClipboardList,
-  },
 ];
 
 export default function Sidebar() {

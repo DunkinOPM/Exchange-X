@@ -3,22 +3,21 @@
 import { useEffect } from "react";
 
 import { usePortfolioStore } from "../../store/portfolioStore";
-import { useUserStore } from "../../store/userStore";
+import { useAuthStore } from "../../store/authStore";
 
 export default function Portfolio() {
-  const { currentUser } = useUserStore();
+  const user = useAuthStore((s) => s.user);
 
-  const {
-    balances,
-    loading,
-    error,
-    loadPortfolio,
-  } = usePortfolioStore();
+  
+
+  const { balances, loading, error, loadPortfolio } = usePortfolioStore();
 
   useEffect(() => {
-    loadPortfolio(currentUser.id);
-  }, [currentUser.id, loadPortfolio]);
+    if (!user) return;
+  loadPortfolio();
+}, [loadPortfolio]);
 
+if (!user) return null;
   if (loading) {
     return (
       <div className="h-full rounded-lg bg-zinc-900 p-4 flex items-center justify-center">
@@ -37,9 +36,7 @@ export default function Portfolio() {
 
   return (
     <div className="h-full overflow-auto rounded-lg bg-zinc-900 p-4">
-      <h2 className="mb-4 font-semibold">
-        Portfolio
-      </h2>
+      <h2 className="mb-4 font-semibold">Portfolio</h2>
 
       <table className="w-full text-sm">
         <thead>
@@ -55,13 +52,9 @@ export default function Portfolio() {
             <tr key={balance.asset}>
               <td>{balance.asset}</td>
 
-              <td className="text-center">
-                {balance.available}
-              </td>
+              <td className="text-center">{balance.available}</td>
 
-              <td className="text-center">
-                {balance.locked}
-              </td>
+              <td className="text-center">{balance.locked}</td>
             </tr>
           ))}
         </tbody>

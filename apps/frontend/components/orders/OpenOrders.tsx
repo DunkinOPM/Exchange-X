@@ -3,21 +3,24 @@
 import { useEffect } from "react";
 
 import { useOpenOrdersStore } from "../../store/openOrdersStore";
-import { useUserStore } from "../../store/userStore";
+import { useAuthStore } from "../../store/authStore";
 
 import Badge from "../common/Badge";
 import EmptyState from "../common/EmptyState";
 import Skeleton from "../common/Skeleton";
 
 export default function OpenOrders() {
-  const { currentUser } = useUserStore();
+  const user = useAuthStore((s) => s.user);
+
+  
 
   const { orders, loading, error, loadOrders } = useOpenOrdersStore();
 
   useEffect(() => {
-    loadOrders(currentUser.id);
-  }, [currentUser.id, loadOrders]);
-
+    if (!user) return;
+  loadOrders();
+}, [loadOrders]);
+if (!user){ return null;}
   if (loading) {
     return (
       <div className="rounded-xl bg-zinc-900 p-4">
@@ -68,9 +71,13 @@ export default function OpenOrders() {
                   </Badge>
                 </td>
 
-                <td className="text-right font-mono">{order.price.toLocaleString()}</td>
+                <td className="text-right font-mono">
+                  {order.price.toLocaleString()}
+                </td>
 
-                <td className="text-center font-mono">{order.quantity.toFixed(4)}</td>
+                <td className="text-center font-mono">
+                  {order.quantity.toFixed(4)}
+                </td>
 
                 <td>
                   <Badge

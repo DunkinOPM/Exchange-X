@@ -17,12 +17,8 @@ interface Store {
   loading: boolean;
   error: string | null;
 
-  loadOrders: (
-    userId: string,
-    market?: string
-  ) => Promise<void>;
-
-  clear: () => void;
+  loadOrders(market?: string): Promise<void>;
+  clear(): void;
 }
 
 export const useOpenOrdersStore = create<Store>((set) => ({
@@ -30,14 +26,14 @@ export const useOpenOrdersStore = create<Store>((set) => ({
   loading: false,
   error: null,
 
-  loadOrders: async (userId, market) => {
+  loadOrders: async (market) => {
     set({
       loading: true,
       error: null,
     });
 
     try {
-      const orders = await getOpenOrders(userId, market);
+      const orders = await getOpenOrders(market);
 
       set({
         orders,

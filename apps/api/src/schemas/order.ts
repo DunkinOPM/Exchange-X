@@ -1,17 +1,15 @@
 import { z } from "zod";
 
 export const CreateOrderSchema = z.object({
-  userId: z.string(),
-
   market: z.string(),
 
   side: z.enum(["BUY", "SELL"]),
 
   type: z.enum(["LIMIT", "MARKET"]),
 
-  price: z.number().positive().optional(),
+  price: z.number().optional(),
 
-  quantity: z.number().positive(),
+  quantity: z.number(),
 });
 
 export type CreateOrderInput =

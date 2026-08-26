@@ -8,6 +8,9 @@ import { marketRoutes } from "./routes/markets";
 import cors from "@fastify/cors";
 import { candleRoutes } from "./routes/candles";
 import { tradeRoutes } from "./routes/trades";
+import { authRoutes } from "./routes/auth";
+import { authenticate } from "./middleware/auth";
+import { prisma } from "./lib/prisma";
 dotenv.config({
   path: "../../.env",
 });
@@ -21,6 +24,24 @@ app.get("/health", async () => {
     status: "ok",
   };
 });
+app.get(
+  "/me",
+  {
+    preHandler: authenticate,
+  },
+  async (request) => {
+    return request.user;
+  },
+);
+app.get("/debug/orders", async () => {
+  return prisma.order.findMany({
+    where: {
+      status: {
+        in: ["PENDING", "PARTIALLY_FILLED"],
+      },
+    },
+  });
+});
 
 const start = async () => {
   try {
@@ -30,11 +51,19 @@ const start = async () => {
     });
 
     app.register(orderRoutes);
+
     app.register(walletRoutes);
+
     app.register(marketRoutes);
+
     app.register(candleRoutes);
+
     app.register(tradeRoutes, {
       prefix: "/trades",
+    });
+
+    app.register(authRoutes, {
+      prefix: "/auth",
     });
     await recoverMatchingEngine();
 

@@ -13,7 +13,7 @@ export default function DashboardPage() {
     <>
       <DashboardStats />
 
-      <div className="flex flex-1 gap-2"></div>
+  
       <div className="flex flex-1 gap-2">
         {/* Order Book */}
         <div className="w-80">
@@ -26,7 +26,7 @@ export default function DashboardPage() {
             <TradingChart />
           </div>
 
-          <div className="h-72">
+          <div className="min-h-[360px]">
             <BuySellPanel />
           </div>
 

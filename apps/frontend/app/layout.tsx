@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import { Toaster } from "sonner";
+import AuthProvider from "../components/providers/AuthProvider";
 
 import "./globals.css";
 
@@ -27,7 +28,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        {children}
+        <AuthProvider>{children}</AuthProvider>
 
         <Toaster
           position="top-right"

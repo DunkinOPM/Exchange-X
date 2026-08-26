@@ -7,6 +7,122 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model User {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  username     String    @unique
+  passwordHash String
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  balances     Balance[]
+  orders       Order[]
+  wallets      Wallet[]
+
+  @@map("users")
+}
+
+model Asset {
+  id        String   @id @default(cuid())
+  symbol    String   @unique
+  name      String
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  wallets   Wallet[]
+
+  @@map("assets")
+}
+
+model Wallet {
+  id               String   @id @default(cuid())
+  userId           String
+  assetId          String
+  availableBalance Decimal  @default(0)
+  lockedBalance    Decimal  @default(0)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  asset            Asset    @relation(fields: [assetId], references: [id])
+  user             User     @relation(fields: [userId], references: [id])
+
+  @@unique([userId, assetId])
+  @@map("wallets")
+}
+
+model Market {
+  id               String   @id @default(cuid())
+  symbol           String   @unique
+  baseAssetSymbol  String
+  quoteAssetSymbol String
+  isActive         Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  orders           Order[]
+  trades           Trade[]
+
+  @@map("markets")
+}
+
+model Order {
+  id             String      @id @default(cuid())
+  userId         String
+  marketId       String
+  side           OrderSide
+  type           OrderType
+  status         OrderStatus @default(PENDING)
+  price          Decimal?
+  quantity       Decimal
+  filledQuantity Decimal     @default(0)
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  market         Market      @relation(fields: [marketId], references: [id])
+  user           User        @relation(fields: [userId], references: [id])
+  buyTrades      Trade[]     @relation("BuyOrder")
+  sellTrades     Trade[]     @relation("SellOrder")
+
+  @@index([marketId])
+  @@index([status])
+  @@map("orders")
+}
+
+model Trade {
+  id          String   @id @default(cuid())
+  buyOrderId  String
+  sellOrderId String
+  marketId    String
+  price       Decimal
+  quantity    Decimal
+  executedAt  DateTime @default(now())
+  buyOrder    Order    @relation("BuyOrder", fields: [buyOrderId], references: [id])
+  market      Market   @relation(fields: [marketId], references: [id])
+  sellOrder   Order    @relation("SellOrder", fields: [sellOrderId], references: [id])
+
+  @@index([marketId])
+  @@map("trades")
+}
+
+model Transaction {
+  id          String          @id @default(cuid())
+  userId      String
+  assetSymbol String
+  amount      Decimal
+  type        TransactionType
+  createdAt   DateTime        @default(now())
+
+  @@index([userId])
+  @@map("transactions")
+}
+
+model Balance {
+  id        String   @id @default(cuid())
+  userId    String
+  asset     String
+  available Decimal  @db.Decimal(28, 8)
+  locked    Decimal  @db.Decimal(28, 8)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, asset])
+}
+
 enum OrderSide {
   BUY
   SELL
@@ -28,160 +144,4 @@ enum TransactionType {
   DEPOSIT
   WITHDRAWAL
   TRADE_SETTLEMENT
-}
-model User {
-  id           String   @id @default(cuid())
-  email        String   @unique
-  username     String   @unique
-  passwordHash String
-
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
-  wallets      Wallet[]
-  orders Order[]
-  balances Balance[]
-
-  @@map("users")
-}
-
-model Asset {
-  id        String   @id @default(cuid())
-
-  symbol    String   @unique
-  name      String
-
-  isActive  Boolean  @default(true)
-
-  createdAt DateTime @default(now())
-
-  wallets   Wallet[]
-
-  @@map("assets")
-}
-
-model Wallet {
-  id               String   @id @default(cuid())
-
-  userId           String
-  assetId          String
-
-  availableBalance Decimal @default(0)
-  lockedBalance    Decimal @default(0)
-
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
-
-  user             User     @relation(fields: [userId], references: [id])
-  asset            Asset    @relation(fields: [assetId], references: [id])
-
-  @@unique([userId, assetId])
-
-  @@map("wallets")
-}
-
-model Market {
-  id String @id @default(cuid())
-
-  symbol String @unique
-
-  baseAssetSymbol String
-  quoteAssetSymbol String
-
-  isActive Boolean @default(true)
-
-  createdAt DateTime @default(now())
-
-  orders Order[]
-  trades Trade[]
-
-  @@map("markets")
-}
-
-model Order {
-  id String @id @default(cuid())
-
-  userId String
-  marketId String
-
-  side OrderSide
-  type OrderType
-
-  status OrderStatus @default(PENDING)
-
-  price Decimal?
-
-  quantity Decimal
-  filledQuantity Decimal @default(0)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  user User @relation(fields: [userId], references: [id])
-
-  market Market @relation(fields: [marketId], references: [id])
-
-  buyTrades  Trade[] @relation("BuyOrder")
-  sellTrades Trade[] @relation("SellOrder")
-
-  @@index([marketId])
-  @@index([status])
-
-  @@map("orders")
-}
-model Trade {
-  id String @id @default(cuid())
-
-  buyOrderId  String
-  sellOrderId String
-
-  marketId String
-
-  price Decimal
-  quantity Decimal
-
-  executedAt DateTime @default(now())
-
-  buyOrder Order @relation("BuyOrder", fields: [buyOrderId], references: [id])
-  sellOrder Order @relation("SellOrder", fields: [sellOrderId], references: [id])
-
-  market Market @relation(fields: [marketId], references: [id])
-
-  @@index([marketId])
-
-  @@map("trades")
-}
-model Transaction {
-  id String @id @default(cuid())
-
-  userId String
-
-  assetSymbol String
-
-  amount Decimal
-
-  type TransactionType
-
-  createdAt DateTime @default(now())
-
-  @@index([userId])
-
-  @@map("transactions")
-}
-
-model Balance {
-  id        String   @id @default(cuid())
-
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  asset     String
-
-  available Decimal @db.Decimal(28, 8)
-  locked    Decimal @db.Decimal(28, 8)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([userId, asset])
 }

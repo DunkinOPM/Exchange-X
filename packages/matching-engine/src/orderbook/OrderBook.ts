@@ -275,4 +275,33 @@ export class OrderBook {
           : null,
     };
   }
+  estimateMarketBuyCost(quantity: number): number {
+  let remaining = quantity;
+  let totalCost = 0;
+
+  const asks = [...this.asks.entries()].sort(
+    (a, b) => a[0] - b[0],
+  );
+
+  for (const [price, orders] of asks) {
+    for (const order of orders) {
+      const available =
+        order.quantity - order.filledQuantity;
+
+      const take = Math.min(available, remaining);
+
+      totalCost += take * price;
+
+      remaining -= take;
+
+      if (remaining <= 0) {
+        return totalCost;
+      }
+    }
+  }
+
+  throw new Error(
+    "Not enough liquidity for MARKET BUY.",
+  );
+}
 }

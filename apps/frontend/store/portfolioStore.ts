@@ -1,44 +1,40 @@
 import { create } from "zustand";
-import {
-  Balance,
-  getPortfolio,
-} from "../services/portfolio";
+import { Balance, getPortfolio } from "../services/portfolio";
 
 interface PortfolioStore {
   balances: Balance[];
   loading: boolean;
   error: string | null;
 
-  loadPortfolio(userId: string): Promise<void>;
+  loadPortfolio(): Promise<void>;
 }
 
-export const usePortfolioStore =
-  create<PortfolioStore>((set) => ({
-    balances: [],
-    loading: false,
-    error: null,
+export const usePortfolioStore = create<PortfolioStore>((set) => ({
+  balances: [],
+  loading: false,
+  error: null,
 
-    loadPortfolio: async (userId) => {
+  loadPortfolio: async () => {
+    set({
+      loading: true,
+      error: null,
+    });
+
+    try {
+      const balances = await getPortfolio();
+
       set({
-        loading: true,
-        error: null,
+        balances,
+        loading: false,
       });
-
-      try {
-        const balances = await getPortfolio(userId);
-
-        set({
-          balances,
-          loading: false,
-        });
-      } catch (err) {
-        set({
-          loading: false,
-          error:
-            err instanceof Error
-              ? err.message
-              : "Failed to load portfolio",
-        });
-      }
-    },
-  }));
+    } catch (err) {
+      set({
+        loading: false,
+        error:
+          err instanceof Error
+            ? err.message
+            : "Failed to load portfolio",
+      });
+    }
+  },
+}));

@@ -51,7 +51,7 @@ export function useMarketSocket() {
     const onMessage = (event: MessageEvent) => {
       const message = JSON.parse(event.data);
 
-      console.log("📨 FRONTEND:", message.type);
+      console.log("📨 FULL MESSAGE:", message);
 
       switch (message.type) {
         case "ticker.updated":
@@ -59,6 +59,8 @@ export function useMarketSocket() {
           break;
 
         case "orderbook.updated":
+          console.log("ORDERBOOK PAYLOAD:", message.payload);
+          console.log("SNAPSHOT:", message.payload.snapshot);
           setBook(message.payload.snapshot);
           break;
 
